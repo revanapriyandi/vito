@@ -82,22 +82,6 @@ export function AppSidebar({ secondNavItems, secondNavTitle }: { secondNavItems?
       icon: ListEndIcon,
       hidden: !page.props.auth.user?.is_admin,
     },
-    {
-      title: 'Vito Logs',
-      href: route('log-viewer.index'),
-      icon: LogsIcon,
-      hidden: !page.props.auth.user?.is_admin,
-    },
-    {
-      title: 'Repository',
-      href: 'https://github.com/vitodeploy/vito',
-      icon: Folder,
-    },
-    {
-      title: 'Documentation',
-      href: 'https://vitodeploy.com',
-      icon: BookOpen,
-    },
   ];
 
   return (

@@ -53,7 +53,7 @@ mkdir /home/vito
 mkdir /home/vito/.ssh
 chown -R vito:vito /home/vito
 chsh -s /bin/bash "vito"
-su - "vito" -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa" <<<y
+su - "vito" -c "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa" <<< y
 
 # upgrade
 apt clean
@@ -131,7 +131,7 @@ service redis start
 
 # setup website
 export COMPOSER_ALLOW_SUPERUSER=1
-export V_REPO="https://github.com/vitodeploy/vito.git"
+export V_REPO="https://github.com/revanapriyandi/vito.git"
 export V_VHOST_CONFIG="
 server {
     listen 80;
@@ -198,7 +198,7 @@ php artisan migrate --force
 php artisan user:create Vito ${V_ADMIN_EMAIL} ${V_ADMIN_PASSWORD}
 openssl genpkey -algorithm RSA -out /home/vito/vito/storage/ssh-private.pem
 chmod 600 /home/vito/vito/storage/ssh-private.pem
-ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem >/home/vito/vito/storage/ssh-public.key
+ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem > /home/vito/vito/storage/ssh-public.key
 chown -R vito:vito /home/vito/vito/storage/ssh-private.pem
 chown -R vito:vito /home/vito/vito/storage/ssh-public.key
 
