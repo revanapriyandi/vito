@@ -28,7 +28,7 @@ export default function DatabaseLayout({ server, children }: { server: Server; c
 
   return (
     <ServerLayout>
-      <Container className="max-w-5xl">
+      <Container>
         <div className="bg-muted/10 inline-flex rounded-md border">
           <NavigationMenu className="flex">
             <NavigationMenuList>
