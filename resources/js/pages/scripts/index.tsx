@@ -24,7 +24,7 @@ export default function Scripts() {
     <Layout>
       <Head title={`Scripts`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Scripts" description="These are the scripts that you can run on your site's location" />
           <div className="flex items-center gap-2">

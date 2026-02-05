@@ -29,7 +29,7 @@ export default function Databases() {
     <ServerLayout>
       <Head title={`Databases - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Databases" description="Here you can manage the databases" />
           <div className="flex items-center gap-2">

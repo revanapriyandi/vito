@@ -23,7 +23,7 @@ export default function Show() {
     <ServerLayout>
       <Head title={`Monitoring - ${page.props.metric} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading
             title={page.props.metric.charAt(0).toUpperCase() + page.props.metric.slice(1)}

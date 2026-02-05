@@ -21,7 +21,7 @@ export default function SourceControls() {
   return (
     <SettingsLayout>
       <Head title="Source Controls" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Source Controls" description="Here you can manage all of the source control connections" />
           <div className="flex items-center gap-2">

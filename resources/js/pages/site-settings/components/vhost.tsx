@@ -65,7 +65,7 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle>Edit virtual host file</SheetTitle>
           <SheetDescription className="sr-only">Edit virtual host file.</SheetDescription>
@@ -86,7 +86,7 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
             <Skeleton className="h-full w-full rounded-none" />
           )}
           {/*make alert center with absolute position*/}
-          <div className="absolute! right-0 bottom-[80px] left-0 z-10 mx-auto max-w-5xl px-6">
+          <div className="absolute! right-0 bottom-[80px] left-0 z-10 mx-auto  px-6">
             <Alert variant="destructive">
               <AlertDescription className="flex items-center gap-2">
                 <StatusRipple variant="destructive" />

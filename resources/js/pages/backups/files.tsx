@@ -30,7 +30,7 @@ export default function Files() {
     <ServerLayout>
       <Head title={`Backup files - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <div className="space-y-0.5">
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">

@@ -21,7 +21,7 @@ export default function SshKeys() {
   return (
     <ServerLayout>
       <Head title="SSH Keys" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="SSH Keys" description="Here you can manage the ssh keys deployed to the server" />
           <div className="flex items-center gap-2">

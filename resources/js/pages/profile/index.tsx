@@ -16,7 +16,7 @@ export default function Profile() {
   return (
     <SettingsLayout>
       <Head title="Profile settings" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Profile settings" description="Manage your profile settings." />
           <div className="flex items-center gap-2">

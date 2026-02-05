@@ -20,7 +20,7 @@ export default function Domains() {
   return (
     <Layout>
       <Head title="Domains" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Domains" description="All of the domains of your project listed here" />
           <div className="flex items-center gap-2">

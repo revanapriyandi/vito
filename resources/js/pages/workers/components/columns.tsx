@@ -122,7 +122,7 @@ function Logs({ worker }: { worker: Worker }) {
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Logs</DropdownMenuItem>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-5xl">
+      <DialogContent className="sm:">
         <DialogHeader>
           <DialogTitle>Worker logs</DialogTitle>
           <DialogDescription className="sr-only">View worker logs</DialogDescription>

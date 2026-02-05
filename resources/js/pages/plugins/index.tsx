@@ -25,7 +25,7 @@ export default function Plugins() {
     <AdminLayout>
       <Head title="Plugins" />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Plugins" description="Here you can install/uninstall plugins" />
           <div className="flex items-center gap-2">

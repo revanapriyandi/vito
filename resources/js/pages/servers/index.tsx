@@ -24,7 +24,7 @@ export default function Servers() {
     <Layout>
       <Head title="Servers" />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Servers" description="All of the servers of your project listed here" />
           <div className="flex items-center gap-2">

@@ -54,7 +54,7 @@ export default function Databases() {
     <ServerLayout>
       <Head title={`Settings - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Settings" description="Here you can manage your server's settings" />
           <div className="flex items-center gap-2">

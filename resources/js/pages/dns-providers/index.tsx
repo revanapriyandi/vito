@@ -20,7 +20,7 @@ export default function DNSProviders() {
   return (
     <SettingsLayout>
       <Head title="DNS Providers" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="DNS Providers" description="Here you can manage all of the DNS provider connections" />
           <div className="flex items-center gap-2">

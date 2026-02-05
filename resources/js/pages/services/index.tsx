@@ -22,7 +22,7 @@ export default function WorkerIndex() {
     <ServerLayout>
       <Head title={`Services - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Services" description="Here you can manage server's services" />
           <div className="flex items-center gap-2">

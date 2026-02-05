@@ -66,7 +66,7 @@ export default function ActionForm({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle>Add [{action.label}]</SheetTitle>
           <SheetDescription className="sr-only">Add [{action.label}] action</SheetDescription>

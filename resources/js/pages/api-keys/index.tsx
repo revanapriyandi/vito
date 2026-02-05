@@ -17,7 +17,7 @@ export default function ApiKeys() {
   return (
     <SettingsLayout>
       <Head title="API Keys" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="API Keys" description="Here you can manage API keys" />
           <div className="flex items-center gap-2">

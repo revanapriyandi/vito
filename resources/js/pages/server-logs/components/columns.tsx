@@ -48,7 +48,7 @@ export function View({ serverLog, children }: { serverLog: ServerLog; children?:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children ? children : <DropdownMenuItem onSelect={(e) => e.preventDefault()}>View</DropdownMenuItem>}</DialogTrigger>
-      <DialogContent className="sm:max-w-5xl">
+      <DialogContent className="sm:">
         <DialogHeader>
           <DialogTitle>View Log</DialogTitle>
           <DialogDescription className="sr-only">This is all content of the log</DialogDescription>

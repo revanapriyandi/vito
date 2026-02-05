@@ -70,7 +70,7 @@ export default function PHPIni({ service, type }: { service: Service; type: 'fpm
       <SheetTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit {type} ini</DropdownMenuItem>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle>Edit {type} ini</SheetTitle>
           <SheetDescription className="sr-only">You can edit the {type} ini file for this service. Make sure to save your changes.</SheetDescription>

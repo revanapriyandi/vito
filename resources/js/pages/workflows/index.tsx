@@ -20,7 +20,7 @@ export default function Workflows() {
     <Layout>
       <Head title={`Workflows`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Workflows" description="Workflows are chained scripts that will run in the defined order" />
           <div className="flex items-center gap-2">

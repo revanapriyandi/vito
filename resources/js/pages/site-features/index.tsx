@@ -26,7 +26,7 @@ export default function SiteFeatures() {
     <ServerLayout>
       <Head title={`Features - ${page.props.site.domain}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Features" description="Your site has some features enabled by Vito or other plugins" />
         </HeaderContainer>

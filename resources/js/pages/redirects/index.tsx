@@ -24,7 +24,7 @@ export default function Redirects() {
     <ServerLayout>
       <Head title={`Redirect - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Redirect" description="Here you can Redirect certificates" />
           <div className="flex items-center gap-2">

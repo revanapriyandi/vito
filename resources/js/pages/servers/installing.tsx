@@ -14,7 +14,7 @@ export default function InstallingServer() {
   }>();
 
   return (
-    <Container className="max-w-5xl">
+    <Container className="">
       <Heading title="Installing" description="Here you can see the installation logs" />
       <DataTable columns={columns} paginatedData={page.props.logs} />{' '}
     </Container>

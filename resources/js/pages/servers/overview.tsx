@@ -15,7 +15,7 @@ export default function ServerOverview() {
   }>();
 
   return (
-    <Container className="max-w-5xl">
+    <Container className="">
       <Heading title="Overview" description="Here you can see an overview of your server" />
       <MetricsCards server={page.props.server} />
       <DataTable columns={columns} paginatedData={page.props.logs} />

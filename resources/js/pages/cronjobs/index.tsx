@@ -26,7 +26,7 @@ export default function CronJobIndex() {
     <ServerLayout>
       <Head title={`Cron jobs - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading
             title="Cron jobs"

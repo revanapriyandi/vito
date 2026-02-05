@@ -25,7 +25,7 @@ export default function WorkerIndex() {
     <ServerLayout>
       <Head title={`Workers - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading
             title="Workers"

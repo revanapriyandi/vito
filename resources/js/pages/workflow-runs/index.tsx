@@ -30,7 +30,7 @@ export default function Workflows() {
     <Layout breadcrumbs={breadcrumbs}>
       <Head title={`History of ${page.props.workflow.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title={`History of ${page.props.workflow.name}`} description="Here you can see a list of executions" />
           <div className="flex items-center gap-2"></div>

@@ -23,7 +23,7 @@ export default function Commands() {
     <ServerLayout>
       <Head title={`Commands - ${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Commands" description="These are the commands that you can run on your site's location" />
           <div className="flex items-center gap-2">

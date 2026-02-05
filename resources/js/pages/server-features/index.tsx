@@ -23,7 +23,7 @@ export default function ServerFeatures() {
     <ServerLayout>
       <Head title={`Features - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Features" description="Your server has some features enabled by Vito or other plugins" />
         </HeaderContainer>

@@ -24,7 +24,7 @@ export default function Backups() {
     <ServerLayout>
       <Head title={`Backups - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Backups" description="Here you can manage database and file backups" />
           <div className="flex items-center gap-2">

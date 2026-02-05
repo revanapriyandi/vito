@@ -24,7 +24,7 @@ export default function ServerLogs() {
     <ServerLayout>
       <Head title={`${page.props.title} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title={page.props.title} description="Here you can see all logs" />
           <div className="flex items-center gap-2">

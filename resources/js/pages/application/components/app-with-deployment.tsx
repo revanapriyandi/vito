@@ -32,7 +32,7 @@ export default function AppWithDeployment() {
     <ServerLayout>
       <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Application" description="Here you can manage the deployed application" />
           <div className="flex items-center gap-2">

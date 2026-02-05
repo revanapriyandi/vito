@@ -64,7 +64,7 @@ export default function ConfigFile({ service, configPath }: { service: Service; 
       <SheetTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit {configPath.name}</DropdownMenuItem>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle>Edit {configPath.name}</SheetTitle>
           <SheetDescription className="sr-only">

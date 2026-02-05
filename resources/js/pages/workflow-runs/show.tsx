@@ -32,7 +32,7 @@ export default function Show() {
   return (
     <Layout breadcrumbs={breadcrumbs}>
       <Head title={`Workflow [${page.props.workflow.name}]`} />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title={`Workflow [${page.props.workflow.name}]`} description="Here you can see the result of your workflow's execution" />
           <Badge variant={page.props.workflowRun.status_color}>{page.props.workflowRun.status}</Badge>

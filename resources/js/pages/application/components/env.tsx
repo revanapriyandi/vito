@@ -65,7 +65,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-4">
             <Input

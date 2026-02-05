@@ -23,7 +23,7 @@ export default function Show() {
     <Layout>
       <Head title={`Executions`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title={`Script executions`} description="Here you can see the script executions" />
         </HeaderContainer>

@@ -22,7 +22,7 @@ export default function Firewall() {
     <ServerLayout>
       <Head title={`Firewall - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Firewall" description="Here you can manage server's firewall rules" />
           <div className="flex items-center gap-2">

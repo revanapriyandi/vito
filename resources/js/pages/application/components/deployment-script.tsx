@@ -58,7 +58,7 @@ export default function DeploymentScript({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle className="capitalize">{script.name} script</SheetTitle>
           <SheetDescription>{description || 'Update script'}</SheetDescription>
@@ -75,7 +75,7 @@ export default function DeploymentScript({
                 fontSize: 15,
               }}
             />
-            <div className="absolute! right-0 bottom-4 left-0 z-10 mx-auto max-w-5xl px-4">
+            <div className="absolute! right-0 bottom-4 left-0 z-10 mx-auto  px-4">
               <Alert>
                 <AlertDescription className="flex items-center gap-2">
                   <StatusRipple variant="default" />

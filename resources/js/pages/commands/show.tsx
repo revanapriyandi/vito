@@ -23,7 +23,7 @@ export default function Show() {
     <ServerLayout>
       <Head title={`Executions - ${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title={`Command executions`} description="Here you can see the command executions" />
         </HeaderContainer>

@@ -22,7 +22,7 @@ export default function DomainShow() {
   return (
     <Layout>
       <Head title={`DNS Records - ${page.props.domain.domain}`} />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title={`DNS Records for ${page.props.domain.domain}`} description="Manage DNS records for this domain" />
           <div className="flex items-center gap-2">

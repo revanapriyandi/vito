@@ -23,7 +23,7 @@ export default function ShowSite() {
     <ServerLayout>
       <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Logs" description="Here you can see your site's logs" />
         </HeaderContainer>

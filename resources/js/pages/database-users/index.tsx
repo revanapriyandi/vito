@@ -25,7 +25,7 @@ export default function Databases() {
     <ServerLayout>
       <Head title={`Users - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Users" description="Here you can manage the database users and their permissions" />
           <div className="flex items-center gap-2">

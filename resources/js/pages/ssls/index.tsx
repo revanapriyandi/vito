@@ -27,7 +27,7 @@ export default function Ssls() {
     <ServerLayout>
       <Head title={`SSL - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="SSL" description="Here you can SSL certificates" />
           <div className="flex items-center gap-2">

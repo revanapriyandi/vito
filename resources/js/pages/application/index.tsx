@@ -27,7 +27,7 @@ export default function Application() {
       <ServerLayout>
         <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-        <Container className="max-w-5xl">
+        <Container className="">
           <HeaderContainer>
             <Heading title="Installing site" description="Your site is being installed. Here you can see the logs" />
           </HeaderContainer>

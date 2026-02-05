@@ -22,7 +22,7 @@ export default function PHP() {
     <ServerLayout>
       <Head title={`PHP - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="PHP" description="Here you can manage PHP" />
           <div className="flex items-center gap-2">

@@ -24,7 +24,7 @@ export default function ServerProviders() {
   return (
     <SettingsLayout>
       <Head title="Server Providers" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Server Providers" description="Here you can manage all of the server provider connections" />
           <div className="flex items-center gap-2">

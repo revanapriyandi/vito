@@ -55,7 +55,7 @@ export default function ScriptForm({ script, children }: { script?: Script; chil
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-5xl">
+      <SheetContent className="sm:">
         <SheetHeader>
           <SheetTitle>{script ? 'Edit' : 'Create'} script</SheetTitle>
           <SheetDescription className="sr-only">{script ? 'Edit' : 'Create'} script</SheetDescription>

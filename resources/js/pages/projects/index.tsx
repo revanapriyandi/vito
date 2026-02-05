@@ -22,7 +22,7 @@ export default function Projects() {
     <SettingsLayout>
       <Head title="Projects" />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Projects" description="Here you can manage your projects" />
           <div className="flex items-center gap-2">

@@ -26,7 +26,7 @@ export default function Sites() {
   return (
     <Comp>
       <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
-      <Container className="max-w-5xl">
+      <Container className="">
         <HeaderContainer>
           <Heading title="Sites" description="Here you can manage websites" />
           <div className="flex items-center gap-2">

@@ -11,7 +11,7 @@ export default function Users() {
     <AdminLayout>
       <Head title="Users" />
 
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Users" description="Here you can manage all users" />
           <UserForm>

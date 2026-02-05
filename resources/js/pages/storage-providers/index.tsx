@@ -23,7 +23,7 @@ export default function StorageProviders() {
   return (
     <SettingsLayout>
       <Head title="Storage Providers" />
-      <Container className="max-w-5xl">
+      <Container className="">
         <div className="flex items-start justify-between">
           <Heading title="Storage Providers" description="Here you can manage all of the storage provider connections" />
           <div className="flex items-center gap-2">
