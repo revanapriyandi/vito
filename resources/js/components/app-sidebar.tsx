@@ -15,13 +15,10 @@ import {
 import { type NavItem, SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-  BookOpen,
   ChevronRightIcon,
   CogIcon,
-  Folder,
   Globe,
   ListEndIcon,
-  LogsIcon,
   MousePointerClickIcon,
   ServerIcon,
   Settings2Icon,

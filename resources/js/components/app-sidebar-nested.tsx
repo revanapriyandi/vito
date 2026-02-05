@@ -16,7 +16,6 @@ import { Link, router, usePage } from '@inertiajs/react';
 import {
   ArrowLeftIcon,
   BellIcon,
-  BookOpen,
   ChevronRightIcon,
   ClockIcon,
   CloudIcon,
@@ -25,7 +24,6 @@ import {
   CogIcon,
   DatabaseIcon,
   FlameIcon,
-  Folder,
   HomeIcon,
   KeyIcon,
   ListIcon,
@@ -38,7 +36,6 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import AppLogo from './app-logo';
-import { Icon } from '@/components/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
