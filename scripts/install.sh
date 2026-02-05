@@ -14,6 +14,7 @@ echo "
 export VITO_VERSION="3.x"
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
+export V_PROJECT_PATH="/var/www/vito"
 
 if [[ -z "${V_PASSWORD}" ]]; then
   export V_PASSWORD=$(openssl rand -base64 12)
@@ -137,7 +138,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name _;
-    root /home/vito/vito/public;
+    root /var/www/vito/public;
 
     add_header X-Frame-Options \"SAMEORIGIN\";
     add_header X-Content-Type-Options \"nosniff\";
@@ -171,36 +172,36 @@ server {
     }
 }
 "
-rm -rf /home/vito/vito
-mkdir /home/vito/vito
-chown -R vito:vito /home/vito/vito
-chmod -R 755 /home/vito/vito
+rm -rf ${V_PROJECT_PATH}
+mkdir -p ${V_PROJECT_PATH}
+chown -R vito:vito ${V_PROJECT_PATH}
+chmod -R 755 ${V_PROJECT_PATH}
 rm /etc/nginx/sites-available/default
 rm /etc/nginx/sites-enabled/default
 echo "${V_VHOST_CONFIG}" | tee /etc/nginx/sites-available/vito
 ln -s /etc/nginx/sites-available/vito /etc/nginx/sites-enabled/
 service nginx restart
-rm -rf /home/vito/vito
+rm -rf ${V_PROJECT_PATH}
 git config --global core.fileMode false
-git clone -b ${VITO_VERSION} ${V_REPO} /home/vito/vito
-find /home/vito/vito -type d -exec chmod 755 {} \;
-find /home/vito/vito -type f -exec chmod 644 {} \;
-cd /home/vito/vito && git config core.fileMode false
-cd /home/vito/vito
+git clone -b ${VITO_VERSION} ${V_REPO} ${V_PROJECT_PATH}
+find ${V_PROJECT_PATH} -type d -exec chmod 755 {} \;
+find ${V_PROJECT_PATH} -type f -exec chmod 644 {} \;
+cd ${V_PROJECT_PATH} && git config core.fileMode false
+cd ${V_PROJECT_PATH}
 git checkout $(git tag -l --merged ${VITO_VERSION} --sort=-v:refname | head -n 1)
 composer install --no-dev
 cp .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
-touch /home/vito/vito/storage/database.sqlite
+touch ${V_PROJECT_PATH}/storage/database.sqlite
 php artisan key:generate
 php artisan storage:link
 php artisan migrate --force
 php artisan user:create Vito ${V_ADMIN_EMAIL} ${V_ADMIN_PASSWORD}
-openssl genpkey -algorithm RSA -out /home/vito/vito/storage/ssh-private.pem
-chmod 600 /home/vito/vito/storage/ssh-private.pem
-ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem > /home/vito/vito/storage/ssh-public.key
-chown -R vito:vito /home/vito/vito/storage/ssh-private.pem
-chown -R vito:vito /home/vito/vito/storage/ssh-public.key
+openssl genpkey -algorithm RSA -out ${V_PROJECT_PATH}/storage/ssh-private.pem
+chmod 600 ${V_PROJECT_PATH}/storage/ssh-private.pem
+ssh-keygen -y -f ${V_PROJECT_PATH}/storage/ssh-private.pem > ${V_PROJECT_PATH}/storage/ssh-public.key
+chown -R vito:vito ${V_PROJECT_PATH}/storage/ssh-private.pem
+chown -R vito:vito ${V_PROJECT_PATH}/storage/ssh-public.key
 
 # optimize
 php artisan optimize
@@ -212,7 +213,7 @@ chown -R vito:vito /home/vito
 export V_WORKER_CONFIG="
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /home/vito/vito/artisan horizon
+command=php /var/www/vito/artisan horizon
 autostart=1
 autorestart=1
 user=vito
@@ -234,7 +235,7 @@ supervisorctl update
 supervisorctl start worker:*
 
 # setup cronjobs
-echo "* * * * * cd /home/vito/vito && php artisan schedule:run >> /dev/null 2>&1" | sudo -u vito crontab -
+echo "* * * * * cd /var/www/vito && php artisan schedule:run >> /dev/null 2>&1" | sudo -u vito crontab -
 
 # print info
 echo "🎉 Congratulations!"
