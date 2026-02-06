@@ -63,7 +63,7 @@ class OnboardLocalhostCommand extends Command
 
             // 2. Generate SSH Keys
             $this->info('Generating SSH keys...');
-            $keyPath = Storage::disk(config('core.key_pairs_disk'))->path($server->id);
+            $keyPath = Storage::disk(config('core.key_pairs_disk'))->path((string) $server->id);
             $pubKeyPath = $keyPath . '.pub';
 
             // Ensure directory exists
