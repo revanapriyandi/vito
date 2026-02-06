@@ -35,7 +35,7 @@ export default function Files() {
           <div className="space-y-0.5">
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
               Backup files of
-              {page.props.backup.type === 'database' && <CopyableBadge text={page.props.backup.database?.name} />}
+              {page.props.backup.type === 'database' && page.props.backup.database && <CopyableBadge text={page.props.backup.database.name} />}
               {page.props.backup.type === 'file' && <CopyableBadge text={page.props.backup.path} tooltip />}
             </h2>
             <p className="text-muted-foreground text-sm">Here you can manage the backup files</p>

@@ -41,11 +41,11 @@ function Delete({ backup }: { backup: Backup }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete backup [{backup.type === 'database' ? backup.database?.name : backup.path}]</DialogTitle>
+          <DialogTitle>Delete backup [{backup.type === 'database' ? (backup.database?.name ?? 'Unknown') : backup.path}]</DialogTitle>
           <DialogDescription className="sr-only">Delete backup</DialogDescription>
         </DialogHeader>
         <p className="p-4">
-          Are you sure you want to delete this backup: <strong>{backup.type === 'database' ? backup.database?.name : backup.path}</strong>? All backup
+          Are you sure you want to delete this backup: <strong>{backup.type === 'database' ? (backup.database?.name ?? 'Unknown') : backup.path}</strong>? All backup
           files will be deleted and this action cannot be undone.
         </p>
         <DialogFooter>
@@ -77,7 +77,7 @@ export const columns: ColumnDef<Backup>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       const backup = row.original;
-      return <CopyableBadge text={backup.type === 'database' ? backup.database?.name : backup.path} tooltip />;
+      return <CopyableBadge text={backup.type === 'database' ? (backup.database?.name ?? 'Unknown') : (backup.path ?? 'Unknown')} tooltip />;
     },
   },
   {
