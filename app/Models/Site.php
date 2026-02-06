@@ -209,13 +209,13 @@ class Site extends AbstractModel
     public function ensureDeploymentScriptsExist(): void
     {
         if ($this->modernDeploymentEnabled()) {
-            if (! $this->buildScript) {
+            if (!$this->buildScript) {
                 $this->deploymentScripts()->create([
                     'name' => 'build',
                     'content' => '',
                 ]);
             }
-            if (! $this->preFlightScript) {
+            if (!$this->preFlightScript) {
                 $this->deploymentScripts()->create([
                     'name' => 'pre-flight',
                     'content' => '',
@@ -223,7 +223,7 @@ class Site extends AbstractModel
             }
         }
 
-        if (! $this->deploymentScript) {
+        if (!$this->deploymentScript) {
             $this->deploymentScripts()->create([
                 'name' => 'default',
                 'content' => '',
@@ -284,8 +284,8 @@ class Site extends AbstractModel
 
     public function type(): SiteType
     {
-        $handlerClass = config('site.types.'.$this->type.'.handler');
-        if (! class_exists($handlerClass)) {
+        $handlerClass = config('site.types.' . $this->type . '.handler');
+        if (!class_exists($handlerClass)) {
             throw new RuntimeException("Site type handler class {$handlerClass} does not exist.");
         }
 
@@ -340,16 +340,16 @@ class Site extends AbstractModel
     public function getUrl(): string
     {
         if ($this->activeSsl) {
-            return 'https://'.$this->domain;
+            return 'https://' . $this->domain;
         }
 
-        return 'http://'.$this->domain;
+        return 'http://' . $this->domain;
     }
 
     public function getWebDirectoryPath(): string
     {
         if ($this->web_directory) {
-            return $this->path.'/'.$this->web_directory;
+            return $this->path . '/' . $this->web_directory;
         }
 
         return $this->path;
@@ -364,7 +364,7 @@ class Site extends AbstractModel
             return;
         }
 
-        if (! $this->sourceControl?->getRepo($this->repository)) {
+        if (!$this->sourceControl?->getRepo($this->repository)) {
             throw new SourceControlIsNotConnected($this->source_control);
         }
 
@@ -384,7 +384,7 @@ class Site extends AbstractModel
      */
     public function disableAutoDeployment(): void
     {
-        if (! $this->sourceControl?->getRepo($this->repository)) {
+        if (!$this->sourceControl?->getRepo($this->repository)) {
             throw new SourceControlIsNotConnected($this->source_control);
         }
 
@@ -398,13 +398,13 @@ class Site extends AbstractModel
 
     public function getSshKeyName(): string
     {
-        return str('site_'.$this->id)->toString();
+        return str('site_' . $this->id)->toString();
     }
 
     public function getEnv(): string
     {
         try {
-            $envPath = $this->type_data['env_path'] ?? $this->path.'/.env';
+            $envPath = $this->type_data['env_path'] ?? $this->path . '/.env';
 
             return $this->server->os()->readFile($envPath);
         } catch (SSHError) {
@@ -424,7 +424,7 @@ class Site extends AbstractModel
             'REPOSITORY' => $this->repository ?? '',
             'COMMIT_ID' => $deployment->commit_id ?? '',
             'PHP_VERSION' => $this->php_version,
-            'PHP_PATH' => '/usr/bin/php'.$this->php_version,
+            'PHP_PATH' => '/usr/bin/php' . $this->php_version,
         ];
     }
 
@@ -434,7 +434,7 @@ class Site extends AbstractModel
     public function environmentAliases(): array
     {
         return [
-            'php' => '/usr/bin/php'.$this->php_version,
+            'php' => '/usr/bin/php' . $this->php_version,
         ];
     }
 
@@ -500,7 +500,7 @@ class Site extends AbstractModel
      */
     public function features(): array
     {
-        $features = config('site.types.'.$this->type.'.features', []);
+        $features = config('site.types.' . $this->type . '.features', []);
         foreach ($features as $featureKey => $feature) {
             foreach ($feature['actions'] ?? [] as $actionKey => $action) {
                 $handlerClass = $action['handler'] ?? null;
@@ -508,7 +508,7 @@ class Site extends AbstractModel
                     /** @var ActionInterface $handler */
                     $handler = new $handlerClass($this);
                     $action['active'] = $handler->active();
-                    if (! isset($action['form']) || empty($action['form'])) {
+                    if (!isset($action['form']) || empty($action['form'])) {
                         $action['form'] = $handler->form()?->toArray() ?? [];
                     }
                 }
@@ -521,7 +521,7 @@ class Site extends AbstractModel
 
     public function hasFeature(string $feature): bool
     {
-        return in_array($feature, config('site.types.'.$this->type.'.features', []));
+        return in_array($feature, config('site.types.' . $this->type . '.features', []));
     }
 
     public function createDefaultDeploymentScript(): void
@@ -530,10 +530,24 @@ class Site extends AbstractModel
             return;
         }
         $script = '';
-        $path = resource_path('deployment-scripts/'.$this->type.'.sh');
+        $path = resource_path('deployment-scripts/' . $this->type . '.sh');
         if (File::exists($path)) {
             $script = File::get($path);
         }
+
+        // For Zip sites (no repository), remove git pull commands
+        if (empty($this->repository)) {
+            $lines = explode("\n", $script);
+            $lines = array_filter($lines, function ($line) {
+                return !str_contains($line, 'git pull');
+            });
+            $script = implode("\n", $lines);
+
+            if (trim($script) === '') {
+                $script = "# No deployment steps required for this site type\necho '✅ Verified'";
+            }
+        }
+
         $deploymentScript = new DeploymentScript([
             'site_id' => $this->id,
             'name' => 'default',
@@ -553,6 +567,6 @@ class Site extends AbstractModel
 
     public function getDeployKeyName(): string
     {
-        return $this->domain.'-key-'.$this->id;
+        return $this->domain . '-key-' . $this->id;
     }
 }
