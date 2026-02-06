@@ -106,6 +106,13 @@ export default function CreateSite({
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     form.setData('env', envValues);
+    
+    // For Zip uploads, exclude Git-related fields to avoid validation errors
+    if (sourceType === 'zip') {
+      const { source_control, repository, branch, ...dataWithoutGit } = form.data;
+      form.transform(() => dataWithoutGit);
+    }
+    
     form.post(route('sites.store', { server: form.data.server }));
   };
 
