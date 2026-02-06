@@ -116,7 +116,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[Get('/servers/{server}/sites/{site}/files', name: 'sites.files')]
+    #[Get('/servers/{server}/sites/{site}/file-manager', name: 'sites.files')]
     public function files(Server $server, Site $site): Response
     {
         $this->authorize('view', [$site, $server]);
