@@ -28,6 +28,13 @@ http {
 	default_type application/octet-stream;
 
 	##
+	# Upload Size Limit
+	##
+
+	# Allow larger file uploads (for Zip analysis, deployments, backups, etc)
+	client_max_body_size 100M;
+
+	##
 	# SSL Settings
 	##
 
