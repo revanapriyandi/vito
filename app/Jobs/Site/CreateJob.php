@@ -36,6 +36,16 @@ class CreateJob implements ShouldQueue
                     $path = storage_path('app/' . $this->zipPath);
                 }
                 $type->handleZip($path);
+
+                // Trigger deployment to run build/start commands
+                try {
+                    app(\App\Actions\Site\Deploy::class)->run($this->site);
+                } catch (Exception $e) {
+                    // Log deployment failure but don't fail the creation job completely?
+                    // Or shoud we? The site is created, just deploy failed.
+                    // The Deploy action dispatches a job, so if it fails here, it's early validation.
+                    ServerLog::log($this->site->server, 'initial-deploy-failed', $e->getMessage(), $this->site);
+                }
             }
 
             $this->site->update([
