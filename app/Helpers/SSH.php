@@ -170,9 +170,11 @@ class SSH
 
         try {
             if ($this->asUser !== null && $this->asUser !== '' && $this->asUser !== '0') {
-                $escapedCommand = str_replace("'", "'\\''", $command);
+                $escapedCommand = str_replace("'", "'\\''", (string) $command);
                 $command = "sudo -u {$this->asUser} bash -c '{$escapedCommand}'";
             }
+
+            Log::debug("SSH EXEC: " . (is_string($command) ? $command : "View instance"));
 
             $this->connection->setTimeout(0);
             if ($stream === true) {
