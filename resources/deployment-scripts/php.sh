@@ -1,3 +1,5 @@
+cd $SITE_PATH
+
 if [ -d ".git" ]; then
   git pull origin $BRANCH
 else
