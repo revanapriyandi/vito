@@ -3,13 +3,13 @@ import AppLogoIcon from './app-logo-icon';
 import { SharedData } from '@/types';
 
 export default function AppLogo() {
-  const { env, logo } = usePage<SharedData>().props;
+  const { env, logo, name } = usePage<SharedData>().props;
   const isProduction = env === 'production';
 
   return (
     <div className="relative flex aspect-square size-8 items-center justify-center rounded-md">
        {logo ? (
-          <img src={logo} alt="Logo" className="size-8 object-contain" />
+          <img src={logo} alt={name || 'Vito'} className="size-8 object-contain" />
        ) : (
           <AppLogoIcon />
        )}

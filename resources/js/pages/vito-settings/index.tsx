@@ -15,11 +15,11 @@ import { route } from 'ziggy-js';
 export default function Users() {
   return (
     <AdminLayout>
-      <Head title="Vito Settings" />
+      <Head title="System Settings" />
 
       <Container className="">
         <div className="flex items-start justify-between">
-          <Heading title="Vito Settings" description="Here you can manage general Vito settings" />
+          <Heading title="System Settings" description="Here you can manage general system settings" />
         </div>
 
         <Card>
@@ -34,11 +34,11 @@ export default function Users() {
               <ImportVito />
             </CardRow>
             <Separator />
-            <div className="p-6">
+            <CardRow>
                 <h3 className="text-lg font-medium text-foreground">General Settings</h3>
                 <p className="text-sm text-muted-foreground mb-4">Update your application name and branding.</p>
                 <GeneralSettingsForm />
-            </div>
+            </CardRow>
           </CardContent>
         </Card>
       </Container>
