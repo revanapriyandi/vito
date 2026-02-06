@@ -190,6 +190,56 @@ abstract class AbstractSiteType implements SiteType
             $this->site->id
         );
 
+        // Check for Laravel and run setup
+        if ($this->site->type === 'php') {
+            $checkLaravel = "test -f {$this->site->path}/artisan && echo 'yes'";
+            if (trim($this->site->server->ssh()->exec($checkLaravel, 'check-laravel', $this->site->id)) === 'yes') {
+
+                // 1. Permissions for storage and bootstrap/cache
+                $this->site->server->ssh()->exec(
+                    "sudo chmod -R 775 {$this->site->path}/storage {$this->site->path}/bootstrap/cache",
+                    'laravel-permissions-mode',
+                    $this->site->id
+                );
+
+                // 2. Composer Install
+                $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
+                if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec(
+                        'composer install --no-dev --no-interaction --no-progress --optimize-autoloader',
+                        'laravel-composer-install',
+                        $this->site->id
+                    );
+                }
+
+                // 3. Environment File
+                $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
+                if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
+                    $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
+                    if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
+                        $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'laravel-copy-env', $this->site->id);
+                    } else {
+                        $this->site->server->ssh($this->site->user)->exec("touch .env", 'laravel-create-env', $this->site->id);
+                    }
+
+                    // If user provided env vars via UI (saved to .env via other means prior? No, usually .env is written by install())
+                    // Currently install() does writeInitialEnv(). So .env MIGHT already exist if the user provided vars during create.
+                    // But if it was just created by 'cp' above, it needs keys.
+                    // We should run key:generate regardless if APP_KEY is missing.
+                    $this->site->server->ssh($this->site->user)->exec("php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
+                }
+
+                // 4. Migration
+                $this->site->server->ssh($this->site->user)->exec("php artisan migrate --force", 'laravel-migrate', $this->site->id);
+
+                // 5. Storage Link
+                $this->site->server->ssh($this->site->user)->exec("php artisan storage:link", 'laravel-storage-link', $this->site->id);
+
+                // 6. Optimize
+                $this->site->server->ssh($this->site->user)->exec("php artisan optimize:clear", 'laravel-optimize', $this->site->id);
+            }
+        }
+
         // Delete local file
         @unlink($zipPath);
     }

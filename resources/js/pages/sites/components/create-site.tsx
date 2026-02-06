@@ -1,4 +1,5 @@
 import axios from 'axios';
+import JSZip from 'jszip';
 
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -159,22 +160,48 @@ export default function CreateSite({
       }
   };
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const runZipAnalysis = async (file: File) => {
       setIsAnalyzing(true);
       /* @ts-expect-error dynamic types */
       form.setData('zip_file', file);
       
-      const formData = new FormData();
-      formData.append('file', file);
       try {
-          const res = await axios.post(route('api.analysis.zip'), formData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data'
-              }
+          const zip = new JSZip();
+          const contents = await zip.loadAsync(file);
+          
+          // 1. Detect Type
+          let detectedType = '';
+          if (contents.file('composer.json')) detectedType = 'php';
+          else if (contents.file('package.json')) detectedType = 'nodejs';
+          else if (contents.file('requirements.txt') || contents.file('pyproject.toml')) detectedType = 'python';
+          else if (contents.file('go.mod')) detectedType = 'go';
+          else if (contents.file('index.html')) detectedType = 'static-html';
+
+          // 2. Detect Env
+          let envContent = '';
+          if (contents.file('.env.example')) {
+              envContent = await contents.file('.env.example')!.async('string');
+          } else if (contents.file('.env')) {
+              envContent = await contents.file('.env')!.async('string');
+          }
+
+          let suggestions: string[] = [];
+          if (envContent) {
+              const lines = envContent.split('\n');
+              suggestions = lines
+                  .filter(line => line.trim() !== '' && !line.startsWith('#'))
+                  .map(line => line.split('=')[0].trim());
+          }
+
+          applyAnalysis({
+              type: detectedType,
+              env_suggestions: suggestions,
+              // We could also parse composer.json for php version if we wanted to go deeper
           });
-          applyAnalysis(res.data);
+
       } catch (e) {
-          console.error(e);
+          console.error("Zip analysis failed:", e);
       } finally {
           setIsAnalyzing(false);
       }
