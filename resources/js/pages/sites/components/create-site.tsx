@@ -28,6 +28,7 @@ import DatabaseUserSelect from '@/pages/database-users/components/database-user-
 import SelectRepo from '@/pages/source-controls/components/select-repo';
 import SelectBranch from '@/pages/source-controls/components/select-branch';
 import { Textarea } from '@/components/ui/textarea';
+import DomainSelect from '@/pages/domains/components/domain-select';
 
 const MANUAL_FIELDS = ['source_control', 'repository', 'branch', 'php_version', 'web_directory', 'nodejs_version', 'python_version', 'go_version', 'build_command', 'start_command', 'install_command'];
 
@@ -35,6 +36,9 @@ type CreateSiteForm = {
   server: string;
   type: string;
   domain: string;
+  subdomain_prefix: string;
+  selected_domain_id: string;
+  use_custom_domain: boolean;
   aliases: string[];
   php_version: string;
   source_control: string;
@@ -65,6 +69,7 @@ export default function CreateSite({
   const [envSuggestions, setEnvSuggestions] = useState<string[]>([]);
   const [envValues, setEnvValues] = useState<string>('');
   const [isUserTouched, setIsUserTouched] = useState(false);
+  const [selectedDomainName, setSelectedDomainName] = useState<string>('');
 
   useEffect(() => {
     if (defaultOpen !== undefined) {
@@ -83,6 +88,9 @@ export default function CreateSite({
     server: server?.id.toString() || '',
     type: 'php',
     domain: '',
+    subdomain_prefix: '',
+    selected_domain_id: '',
+    use_custom_domain: false,
     aliases: [],
     php_version: '',
     source_control: '',
@@ -470,14 +478,66 @@ export default function CreateSite({
                 </FormField>
 
                 <FormField>
-                  <Label htmlFor="domain">Domain</Label>
-                  <Input
-                    id="domain"
-                    type="text"
-                    value={form.data.domain}
-                    onChange={(e) => form.setData('domain', e.target.value)}
-                    placeholder="vitodeploy.com"
-                  />
+                  <Label>Domain</Label>
+                  <div className="space-y-3">
+                    {/* Option 1: Use Registered Domain with Subdomain */}
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label htmlFor="subdomain" className="text-xs text-muted-foreground">Subdomain (optional)</Label>
+                        <Input
+                          id="subdomain"
+                          placeholder="e.g., app, api, www"
+                          value={form.data.subdomain_prefix}
+                          onChange={(e) => {
+                            form.setData('subdomain_prefix', e.target.value);
+                            if (!form.data.use_custom_domain && selectedDomainName) {
+                              const computed = e.target.value ? `${e.target.value}.${selectedDomainName}` : selectedDomainName;
+                              form.setData('domain', computed);
+                            }
+                          }}
+                          disabled={form.data.use_custom_domain}
+                        />
+                      </div>
+                      <span className="text-muted-foreground pb-2">.</span>
+                      <div className="flex-[2]">
+                        <Label htmlFor="domain-select" className="text-xs text-muted-foreground">Registered Domain</Label>
+                        <DomainSelect
+                          id="domain-select"
+                          value={form.data.selected_domain_id}
+                          onValueChange={(domainId, domainName) => {
+                            form.setData('selected_domain_id', domainId);
+                            form.setData('use_custom_domain', false);
+                            setSelectedDomainName(domainName);
+                            const computed = form.data.subdomain_prefix ? `${form.data.subdomain_prefix}.${domainName}` : domainName;
+                            form.setData('domain', computed);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* OR Separator */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 border-t" />
+                      <span className="text-xs text-muted-foreground">OR</span>
+                      <div className="flex-1 border-t" />
+                    </div>
+
+                    {/* Option 2: Custom Domain */}
+                    <div>
+                      <Label htmlFor="custom-domain" className="text-xs text-muted-foreground">Custom Domain</Label>
+                      <Input
+                        id="custom-domain"
+                        placeholder="your-domain.com"
+                        value={form.data.use_custom_domain ? form.data.domain : ''}
+                        onChange={(e) => {
+                          form.setData('use_custom_domain', true);
+                          form.setData('domain', e.target.value);
+                          form.setData('selected_domain_id', '');
+                          form.setData('subdomain_prefix', '');
+                        }}
+                      />
+                    </div>
+                  </div>
                   <InputError message={form.errors.domain} />
                 </FormField>
 
