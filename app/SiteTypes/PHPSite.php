@@ -40,13 +40,16 @@ class PHPSite extends AbstractSiteType
 
     public function createRules(array $input): array
     {
+        // For Zip deployments, source_control/repository/branch are not provided
+        $hasSourceControl = !empty($input['source_control'] ?? null);
+
         return [
             'php_version' => [
                 'required',
                 Rule::in($this->site->server->installedPHPVersions()),
             ],
             'source_control' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
                 Rule::exists('source_controls', 'id'),
             ],
             'web_directory' => [
@@ -57,10 +60,10 @@ class PHPSite extends AbstractSiteType
                 'not_regex:/\.\./',
             ],
             'repository' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
             ],
             'branch' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
             ],
             'composer' => [
                 'nullable',
