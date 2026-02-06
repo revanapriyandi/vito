@@ -16,18 +16,16 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     public function boot(): void
     {
         ResourceCollection::withoutWrapping();
 
         // facades
-        $this->app->bind('ssh', fn(): SSH => new SSH);
-        $this->app->bind('notifier', fn(): Notifier => new Notifier);
-        $this->app->bind('ftp', fn(): FTP => new FTP);
+        $this->app->bind('ssh', fn (): SSH => new SSH);
+        $this->app->bind('notifier', fn (): Notifier => new Notifier);
+        $this->app->bind('ftp', fn (): FTP => new FTP);
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 

@@ -4,30 +4,26 @@ namespace App\SiteTypes;
 
 use App\Actions\Worker\CreateWorker;
 use App\Actions\Worker\ManageWorker;
-use App\Exceptions\FailedToDeployGitKey;
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use App\Models\Worker;
 use App\SSH\OS\Git;
-use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 
-class NodeJS extends AbstractSiteType
+class GenericPort extends AbstractSiteType
 {
     public static function id(): string
     {
-        return 'nodejs';
+        return 'generic-port';
     }
 
     public function language(): string
     {
-        return 'nodejs';
+        return 'generic-port';
     }
 
     public function requiredServices(): array
     {
         return [
-            'nodejs',
             'webserver',
             'process_manager',
         ];
@@ -41,25 +37,11 @@ class NodeJS extends AbstractSiteType
     public function createRules(array $input): array
     {
         return [
-            'source_control' => [
-                'required',
-                Rule::exists('source_controls', 'id'),
-            ],
-            'repository' => [
-                'required',
-            ],
-            'branch' => [
-                'required',
-            ],
-            'port' => [
-                'required',
-                'numeric',
-                'between:1,65535',
-            ],
-            'nodejs_version' => [
-                'required',
-                'string',
-            ],
+            'source_control' => ['required', Rule::exists('source_controls', 'id')],
+            'repository' => ['required'],
+            'branch' => ['required'],
+            'port' => ['required', 'numeric', 'between:1,65535'],
+            'start_command' => ['required', 'string'],
         ];
     }
 
@@ -70,46 +52,43 @@ class NodeJS extends AbstractSiteType
             'repository' => $input['repository'] ?? '',
             'branch' => $input['branch'] ?? '',
             'port' => $input['port'] ?? '',
-            'nodejs_version' => $input['nodejs_version'] ?? '',
+            'type_data' => [
+                'install_command' => $input['install_command'] ?? '',
+                'build_command' => $input['build_command'] ?? '',
+                'start_command' => $input['start_command'] ?? '',
+            ],
         ];
     }
 
-    public function data(array $input): array
-    {
-        return [];
-    }
-
-    /**
-     * @throws FailedToDeployGitKey
-     * @throws SSHError
-     */
     public function install(): void
     {
         $this->isolate();
         $this->site->webserver()->createVHost($this->site);
         $this->progress(15);
+
         $this->deployKey();
         $this->progress(30);
+
         app(Git::class)->clone($this->site);
-        $this->site->server->ssh($this->site->user)->exec(
-            __('npm install --prefix=:path', [
-                'path' => $this->site->path,
-            ]),
-            'install-npm-dependencies',
-            $this->site->id
-        );
-        $this->site->server->ssh($this->site->user)->exec(
-            __('npm run build --prefix=:path', [
-                'path' => $this->site->path,
-            ]),
-            'npm-build',
-            $this->site->id
-        );
+
+        if (! empty($this->site->type_data['install_command'])) {
+            $this->site->server->ssh($this->site->user)->exec(
+                $this->site->type_data['install_command'],
+                'install-dependencies',
+                $this->site->id
+            );
+        }
+
+        if (! empty($this->site->type_data['build_command'])) {
+            $this->site->server->ssh($this->site->user)->exec(
+                $this->site->type_data['build_command'],
+                'build-app',
+                $this->site->id
+            );
+        }
+
         $this->progress(65);
-        $command = __('npm start --prefix=:path', [
-            'path' => $this->site->path,
-        ]);
-        $this->progress(80);
+
         /** @var ?Worker $worker */
         $worker = $this->site->workers()->where('name', 'app')->first();
         if ($worker) {
@@ -119,7 +98,7 @@ class NodeJS extends AbstractSiteType
                 $this->site->server,
                 [
                     'name' => 'app',
-                    'command' => $command,
+                    'command' => $this->site->type_data['start_command'],
                     'user' => $this->site->user ?? $this->site->server->getSshUser(),
                     'auto_start' => true,
                     'auto_restart' => true,
@@ -128,19 +107,10 @@ class NodeJS extends AbstractSiteType
                 $this->site,
             );
         }
+        $this->progress(80);
     }
 
-    public function baseCommands(): array
-    {
-        return [
-            [
-                'name' => 'npm:install',
-                'command' => 'npm install',
-            ],
-        ];
-    }
-
-    public function vhost(string $webserver): string|View
+    public function vhost(string $webserver): string|\Illuminate\Contracts\View\View
     {
         if ($webserver === 'nginx') {
             return view('ssh.services.webserver.nginx.vhost', [
@@ -152,19 +122,6 @@ class NodeJS extends AbstractSiteType
                     view('ssh.services.webserver.nginx.vhost-blocks.core', ['site' => $this->site]),
                     view('ssh.services.webserver.nginx.vhost-blocks.reverse-proxy', ['site' => $this->site]),
                     view('ssh.services.webserver.nginx.vhost-blocks.redirects', ['site' => $this->site]),
-                ],
-            ]);
-        }
-
-        if ($webserver === 'caddy') {
-            return view('ssh.services.webserver.caddy.vhost', [
-                'site' => $this->site,
-                'main' => [
-                    view('ssh.services.webserver.caddy.vhost-blocks.force-ssl', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.port', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.core', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.reverse-proxy', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.redirects', ['site' => $this->site]),
                 ],
             ]);
         }

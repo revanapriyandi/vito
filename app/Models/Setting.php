@@ -12,12 +12,15 @@ class Setting extends Model
     protected $fillable = ['key', 'value'];
 
     protected $primaryKey = 'key';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public static function get(string $key, $default = null)
     {
         $setting = self::find($key);
+
         return $setting ? $setting->value : $default;
     }
 

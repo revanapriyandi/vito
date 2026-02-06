@@ -12,14 +12,16 @@ use App\Services\Monitoring\VitoAgent\VitoAgent;
 use App\Services\NodeJS\NodeJS;
 use App\Services\PHP\PHP;
 use App\Services\ProcessManager\Supervisor;
-use App\Services\Redis\Redis;
+use App\Services\Redis\Redis as RedisService;
 use App\Services\Webserver\Caddy;
 use App\Services\Webserver\Nginx;
 use Illuminate\Support\ServiceProvider;
 
 class ServiceTypeServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+    }
 
     public function boot(): void
     {
@@ -31,6 +33,8 @@ class ServiceTypeServiceProvider extends ServiceProvider
         $this->monitoring();
         $this->php();
         $this->node();
+        $this->python();
+        $this->go();
     }
 
     private function webservers(): void
@@ -117,10 +121,10 @@ class ServiceTypeServiceProvider extends ServiceProvider
 
     private function memoryDatabases(): void
     {
-        RegisterServiceType::make(Redis::id())
-            ->type(Redis::type())
+        RegisterServiceType::make(RedisService::id())
+            ->type(RedisService::type())
             ->label('Redis')
-            ->handler(Redis::class)
+            ->handler(RedisService::class)
             ->configPaths([
                 [
                     'name' => 'redis.conf',
@@ -209,13 +213,43 @@ class ServiceTypeServiceProvider extends ServiceProvider
     {
         RegisterServiceType::make(NodeJS::id())
             ->type(NodeJS::type())
-            ->label('Node.js')
+            ->label('NodeJS')
             ->handler(NodeJS::class)
             ->versions([
                 '22',
                 '20',
                 '18',
                 '16',
+            ])
+            ->register();
+    }
+
+    private function python(): void
+    {
+        RegisterServiceType::make(\App\Services\Python\Python::id())
+            ->type(\App\Services\Python\Python::type())
+            ->label('Python')
+            ->handler(\App\Services\Python\Python::class)
+            ->versions([
+                '3.12',
+                '3.11',
+                '3.10',
+                '3.9',
+                '3.8',
+            ])
+            ->register();
+    }
+
+    private function go(): void
+    {
+        RegisterServiceType::make(\App\Services\Go\Go::id())
+            ->type(\App\Services\Go\Go::type())
+            ->label('Go')
+            ->handler(\App\Services\Go\Go::class)
+            ->versions([
+                '1.23',
+                '1.22',
+                '1.21',
             ])
             ->register();
     }

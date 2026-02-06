@@ -27,6 +27,10 @@ class SiteTypeServiceProvider extends ServiceProvider
         $this->phpBlank();
         $this->laravel();
         $this->nodeJS();
+        $this->python();
+        $this->go();
+        $this->genericPort();
+        $this->staticHtml();
         $this->loadBalancer();
         $this->phpMyAdmin();
         $this->wordpress();
@@ -155,6 +159,150 @@ class SiteTypeServiceProvider extends ServiceProvider
                     ->text()
                     ->label('Branch')
                     ->default('main'),
+                DynamicField::make('nodejs_version')
+                    ->component()
+                    ->label('Node.js Version'),
+            ]))
+            ->register();
+    }
+
+    private function genericPort(): void
+    {
+        RegisterSiteType::make(\App\SiteTypes\GenericPort::id())
+            ->label('Generic App (Port)')
+            ->handler(\App\SiteTypes\GenericPort::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->label('Repository')
+                    ->placeholder('organization/repository'),
+                DynamicField::make('branch')
+                    ->text()
+                    ->label('Branch')
+                    ->default('main'),
+                DynamicField::make('port')
+                    ->text()
+                    ->label('Port')
+                    ->placeholder('8080'),
+                DynamicField::make('install_command')
+                    ->text()
+                    ->label('Install Command')
+                    ->placeholder('e.g. npm install, go build')
+                    ->description('Command to install dependencies/build'),
+                DynamicField::make('build_command')
+                    ->text()
+                    ->label('Build Command')
+                    ->placeholder('e.g. npm run build')
+                    ->description('Command to build the application (optional)'),
+                DynamicField::make('start_command')
+                    ->text()
+                    ->label('Start Command')
+                    ->placeholder('e.g. ./app, npm start')
+                    ->description('Long running command to start the application'),
+            ]))
+            ->register();
+    }
+
+    private function staticHtml(): void
+    {
+        RegisterSiteType::make(\App\SiteTypes\StaticHTML::id())
+            ->label('Static HTML')
+            ->handler(\App\SiteTypes\StaticHTML::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->label('Repository')
+                    ->placeholder('organization/repository'),
+                DynamicField::make('branch')
+                    ->text()
+                    ->label('Branch')
+                    ->default('main'),
+                DynamicField::make('web_directory')
+                    ->text()
+                    ->label('Web Directory')
+                    ->placeholder('e.g. public, dist')
+                    ->description('Directory containing index.html'),
+            ]))
+            ->register();
+    }
+
+    private function python(): void
+    {
+        RegisterSiteType::make(\App\SiteTypes\Python::id())
+            ->label('Python')
+            ->handler(\App\SiteTypes\Python::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('python_version')
+                    ->component()
+                    ->label('Python Version'),
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->label('Repository')
+                    ->placeholder('organization/repository'),
+                DynamicField::make('branch')
+                    ->text()
+                    ->label('Branch')
+                    ->default('main'),
+                DynamicField::make('port')
+                    ->text()
+                    ->label('Port')
+                    ->placeholder('8000'),
+                DynamicField::make('install_command')
+                    ->text()
+                    ->label('Install Command')
+                    ->default('pip install -r requirements.txt')
+                    ->placeholder('pip install -r requirements.txt'),
+                DynamicField::make('start_command')
+                    ->text()
+                    ->label('Start Command')
+                    ->placeholder('gunicorn app:app'),
+            ]))
+            ->register();
+    }
+
+    private function go(): void
+    {
+        RegisterSiteType::make(\App\SiteTypes\Go::id())
+            ->label('Go')
+            ->handler(\App\SiteTypes\Go::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('go_version')
+                    ->component()
+                    ->label('Go Version'),
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->label('Repository')
+                    ->placeholder('organization/repository'),
+                DynamicField::make('branch')
+                    ->text()
+                    ->label('Branch')
+                    ->default('main'),
+                DynamicField::make('port')
+                    ->text()
+                    ->label('Port')
+                    ->placeholder('8080'),
+                DynamicField::make('install_command')
+                    ->text()
+                    ->label('Install Command')
+                    ->default('go build -o app')
+                    ->placeholder('go build -o app'),
+                DynamicField::make('start_command')
+                    ->text()
+                    ->label('Start Command')
+                    ->default('./app')
+                    ->placeholder('./app'),
             ]))
             ->register();
     }

@@ -51,7 +51,7 @@ class HandleInertiaRequests extends Middleware
         $user?->refresh();
         $currentProject = $user?->currentProject;
         $canSeeCurrentProject = $user && $currentProject && $user->can('view', $currentProject);
-        if ($user && (!$currentProject || !$canSeeCurrentProject)) {
+        if ($user && (! $currentProject || ! $canSeeCurrentProject)) {
             $user->ensureHasDefaultProject();
 
             return $this->share($request);
@@ -124,19 +124,19 @@ class HandleInertiaRequests extends Middleware
                     'providers' => config('dns-provider.providers'),
                 ],
             ],
-            'ziggy' => fn(): array => [
+            'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
             'csrf_token' => csrf_token(),
             'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'error' => fn() => $request->session()->get('error'),
-                'danger' => fn() => $request->session()->get('danger'),
-                'warning' => fn() => $request->session()->get('warning'),
-                'info' => fn() => $request->session()->get('info'),
-                'gray' => fn() => $request->session()->get('gray'),
-                'data' => fn() => $request->session()->get('data'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'danger' => fn () => $request->session()->get('danger'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
+                'gray' => fn () => $request->session()->get('gray'),
+                'data' => fn () => $request->session()->get('data'),
             ],
         ];
     }
