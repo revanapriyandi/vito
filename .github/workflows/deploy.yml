@@ -17,10 +17,10 @@ jobs:
           port: 22
           script: |
               cd /var/www/vito
-              git pull origin 3.x
-              php8.4 /usr/local/bin/composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-              php8.4 artisan migrate --force
-              npm install
-              npm run build
-              php8.4 artisan optimize
-              php8.4 artisan horizon:terminate
+              sudo git pull origin 3.x
+              sudo php8.4 /usr/local/bin/composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+              sudo php8.4 artisan migrate --force
+              sudo npm install
+              sudo npm run build
+              sudo php8.4 artisan optimize
+              sudo php8.4 artisan horizon:terminate

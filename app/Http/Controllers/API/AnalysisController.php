@@ -8,14 +8,18 @@ use App\Services\RepositoryAnalyzer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use ZipArchive;
 
 #[Prefix('api/analysis')]
+#[Middleware('auth:sanctum')]
 class AnalysisController extends Controller
 {
-    public function __construct(protected RepositoryAnalyzer $analyzer) {}
+    public function __construct(protected RepositoryAnalyzer $analyzer)
+    {
+    }
 
     #[Post('git', name: 'api.analysis.git')]
     public function analyzeGit(Request $request): JsonResponse
@@ -51,7 +55,7 @@ class AnalysisController extends Controller
         $file = $request->file('file');
         $path = $file->store('temp-analysis');
         $fullPath = Storage::path($path);
-        $folderName = 'temp-analysis/extract-'.uniqid();
+        $folderName = 'temp-analysis/extract-' . uniqid();
         $extractPath = Storage::path($folderName);
 
         mkdir($extractPath, 0755, true);
