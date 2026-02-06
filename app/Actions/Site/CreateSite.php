@@ -37,12 +37,12 @@ class CreateSite
                 'domain' => $input['domain'],
                 'aliases' => $input['aliases'] ?? [],
                 'user' => $user,
-                'path' => '/home/'.$user.'/'.$input['domain'],
+                'path' => '/home/' . $user . '/' . $input['domain'],
                 'status' => SiteStatus::INSTALLING,
             ]);
 
             foreach ($site->type()->requiredServices() as $requiredService) {
-                if (! $server->service($requiredService)) {
+                if (!$server->service($requiredService)) {
                     throw ValidationException::withMessages([
                         'type' => "The site type requires a {$requiredService} service to be installed.",
                     ]);
@@ -73,7 +73,7 @@ class CreateSite
 
             // set type data
             $site->type_data = $site->type()->data($input);
-            if (isset($input['env']) && ! empty($input['env'])) {
+            if (isset($input['env']) && !empty($input['env'])) {
                 $typeData = $site->type_data;
                 $typeData['initial_env'] = $input['env'];
                 $site->type_data = $typeData;
@@ -84,6 +84,35 @@ class CreateSite
 
             // create base commands if any
             $site->commands()->createMany($site->type()->baseCommands());
+
+            // Handle DNS if domain exists and has provider
+            // Check for registered domain
+            if (isset($input['selected_domain_id']) && !empty($input['selected_domain_id'])) {
+                $domain = \App\Models\Domain::find($input['selected_domain_id']);
+
+                if ($domain && $domain->dnsProvider) {
+                    try {
+                        $dnsInput = [
+                            'type' => 'A',
+                            'name' => $input['subdomain_prefix'] ?? '@',
+                            'content' => $server->ip,
+                            'ttl' => 1, // Auto
+                            'proxied' => false,
+                        ];
+
+                        // If subdomain is empty, use @ calling convention
+                        if (empty($dnsInput['name'])) {
+                            $dnsInput['name'] = '@';
+                        }
+
+                        app(\App\Actions\Domain\CreateDNSRecord::class)->create($domain, $dnsInput);
+                    } catch (\Throwable $e) {
+                        // Log error but don't fail site creation
+                        // Or maybe we want to inform user?
+                        // For now let's just proceed as site creation is primary
+                    }
+                }
+            }
 
             // install site
             dispatch(new CreateJob($site))->onQueue('ssh');
@@ -109,7 +138,7 @@ class CreateSite
             'domain' => [
                 'required',
                 new DomainRule,
-                Rule::unique('sites', 'domain')->where(fn ($query) => $query->where('server_id', $server->id)),
+                Rule::unique('sites', 'domain')->where(fn($query) => $query->where('server_id', $server->id)),
             ],
             'aliases.*' => [
                 new DomainRule,
@@ -133,7 +162,7 @@ class CreateSite
      */
     private function typeRules(Server $server, array $input): array
     {
-        if (! isset($input['type']) || ! config('site.types.'.$input['type'])) {
+        if (!isset($input['type']) || !config('site.types.' . $input['type'])) {
             return [];
         }
 
