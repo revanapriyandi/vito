@@ -19,9 +19,7 @@ use Illuminate\Support\ServiceProvider;
 
 class ServiceTypeServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     public function boot(): void
     {
