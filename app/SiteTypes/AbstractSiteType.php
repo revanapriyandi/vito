@@ -139,21 +139,21 @@ abstract class AbstractSiteType implements SiteType
         // -o: overwrite existing files without prompting
         // -d: extract to directory
         $this->site->server->ssh()->exec(
-            "unzip -o $remotePath -d {$this->site->path}",
+            "sudo unzip -o $remotePath -d {$this->site->path}",
             'extract-zip-source',
             $this->site->id
         );
 
         // Remove zip file
         $this->site->server->ssh()->exec(
-            "rm $remotePath",
+            "sudo rm $remotePath",
             'cleanup-zip-source',
             $this->site->id
         );
 
         // Fix permissions
         $this->site->server->ssh()->exec(
-            "chown -R {$this->site->user}:{$this->site->user} {$this->site->path}",
+            "sudo chown -R {$this->site->user}:{$this->site->user} {$this->site->path}",
             'set-permissions',
             $this->site->id
         );
