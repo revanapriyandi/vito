@@ -19,7 +19,7 @@ export default function CommunityPlugins() {
     queryKey: ['community-plugins'],
     queryFn: async ({ pageParam }) => {
       const data = (
-        await axios.get(
+        await axios.create().get(
           'https://api.github.com/search/repositories?q=-owner:vitodeploy%20topic:vitodeploy-plugin%20fork:true&per_page=10&page=' + pageParam,
         )
       ).data;
