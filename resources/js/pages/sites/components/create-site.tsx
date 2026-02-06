@@ -109,7 +109,10 @@ export default function CreateSite({
     
     // For Zip uploads, exclude Git-related fields to avoid validation errors
     if (sourceType === 'zip') {
-      const { source_control, repository, branch, ...dataWithoutGit } = form.data;
+      const gitFields = ['source_control', 'repository', 'branch'];
+      const dataWithoutGit = Object.fromEntries(
+        Object.entries(form.data).filter(([key]) => !gitFields.includes(key))
+      );
       form.transform(() => dataWithoutGit);
     }
     
