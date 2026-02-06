@@ -151,6 +151,38 @@ abstract class AbstractSiteType implements SiteType
             $this->site->id
         );
 
+        // Fix permissions explicitly before checking structure
+        $this->site->server->ssh()->exec(
+            "sudo chown -R {$this->site->user}:{$this->site->user} {$this->site->path}",
+            'set-permissions-initial',
+            $this->site->id
+        );
+
+        // Smart Extraction: Check if there is only one directory and move contents up
+        // We use a bash script to check this condition
+        $flattenScript = <<<'BASH'
+            cd %s
+            # Count items including hidden ones, excluding . and ..
+            count=$(find . -maxdepth 1 -not -path '*/.*' | wc -l)
+            if [ "$count" -eq 1 ]; then
+                # Get the single item
+                item=$(find . -maxdepth 1 -not -path '*/.*' -printf "%%f")
+                if [ -d "$item" ]; then
+                    echo "Flattening directory $item..."
+                    # Move contents up
+                    sudo mv "$item"/* .
+                    sudo mv "$item"/.* . 2>/dev/null
+                    sudo rmdir "$item"
+                fi
+            fi
+        BASH;
+
+        $this->site->server->ssh()->exec(
+            sprintf($flattenScript, $this->site->path),
+            'flatten-zip-structure',
+            $this->site->id
+        );
+
         // Fix permissions
         $this->site->server->ssh()->exec(
             "sudo chown -R {$this->site->user}:{$this->site->user} {$this->site->path}",
