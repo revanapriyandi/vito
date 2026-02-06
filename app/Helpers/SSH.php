@@ -170,13 +170,8 @@ class SSH
 
         try {
             if ($this->asUser !== null && $this->asUser !== '' && $this->asUser !== '0') {
-                $command = <<<BASH
-                sudo -u {$this->asUser} bash <<'VITO_EOF'
-                export HOME=$(getent passwd {$this->asUser} | cut -d: -f6)
-                cd \$HOME
-                {$command}
-                VITO_EOF
-                BASH;
+                $escapedCommand = str_replace("'", "'\\''", $command);
+                $command = "sudo -u {$this->asUser} bash -c '{$escapedCommand}'";
             }
 
             $this->connection->setTimeout(0);
