@@ -42,6 +42,10 @@
         <link rel="icon" href="{{ $favicon ?? asset('favicon/favicon-96x96.png') }}" sizes="any" />
         <link rel="apple-touch-icon" href="{{ $favicon ?? asset('favicon/apple-icon.png') }}" />
 
+        <script>
+            window.appName = "{{ config('app.name') }}";
+        </script>
+
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 

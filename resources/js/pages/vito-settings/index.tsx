@@ -34,7 +34,7 @@ export default function Users() {
               <ImportVito />
             </CardRow>
             <Separator />
-            <div className="pt-6">
+            <div className="p-6">
                 <h3 className="text-lg font-medium text-foreground">General Settings</h3>
                 <p className="text-sm text-muted-foreground mb-4">Update your application name and branding.</p>
                 <GeneralSettingsForm />
