@@ -33,10 +33,20 @@ class StaticHTML extends AbstractSiteType
 
     public function createRules(array $input): array
     {
+        // For Zip deployments, source_control/repository/branch are not provided
+        $hasSourceControl = !empty($input['source_control'] ?? null);
+
         return [
-            'source_control' => ['required', Rule::exists('source_controls', 'id')],
-            'repository' => ['required'],
-            'branch' => ['required'],
+            'source_control' => [
+                $hasSourceControl ? 'required' : 'nullable',
+                Rule::exists('source_controls', 'id'),
+            ],
+            'repository' => [
+                $hasSourceControl ? 'required' : 'nullable',
+            ],
+            'branch' => [
+                $hasSourceControl ? 'required' : 'nullable',
+            ],
         ];
     }
 
