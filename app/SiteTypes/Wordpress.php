@@ -101,6 +101,8 @@ class Wordpress extends PHPSite
         $this->site->php()?->restart();
         $this->progress(60);
 
+        $this->writeInitialEnv();
+
         $this->site->server->ssh($this->site->user)->exec(
             view('ssh.wordpress.install', [
                 'path' => $this->site->path,

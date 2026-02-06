@@ -22,6 +22,9 @@ import DatabaseSelect from '@/pages/databases/components/database-select';
 import DatabaseUserSelect from '@/pages/database-users/components/database-user-select';
 import SelectRepo from '@/pages/source-controls/components/select-repo';
 import SelectBranch from '@/pages/source-controls/components/select-branch';
+import { Textarea } from '@/components/ui/textarea';
+
+const MANUAL_FIELDS = ['source_control', 'repository', 'branch', 'php_version', 'web_directory', 'nodejs_version', 'python_version', 'go_version', 'build_command', 'start_command', 'install_command'];
 
 type CreateSiteForm = {
   server: string;
@@ -33,6 +36,10 @@ type CreateSiteForm = {
   repository: string;
   branch: string;
   user: string;
+  nodejs_version: string;
+  python_version: string;
+  go_version: string;
+  env: string;
 };
 
 export default function CreateSite({
@@ -48,6 +55,11 @@ export default function CreateSite({
 }) {
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(defaultOpen || false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [sourceType, setSourceType] = useState<'git' | 'zip'>('git');
+  const [envSuggestions, setEnvSuggestions] = useState<string[]>([]);
+  const [envValues, setEnvValues] = useState<string>('');
+  const [isUserTouched, setIsUserTouched] = useState(false);
 
   useEffect(() => {
     if (defaultOpen !== undefined) {
@@ -72,11 +84,75 @@ export default function CreateSite({
     repository: '',
     branch: '',
     user: '',
+    nodejs_version: '',
+    python_version: '',
+    go_version: '',
+    env: '',
   });
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
+    form.setData('env', envValues);
     form.post(route('sites.store', { server: form.data.server }));
+  };
+
+  const runAnalysis = async (repo: string, branch: string) => {
+      setIsAnalyzing(true);
+      try {
+          const res = await fetch(route('api.analysis.git'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({
+                  source_control_id: form.data.source_control,
+                  repository: repo,
+                  branch: branch
+              })
+          });
+          const result = await res.json();
+          applyAnalysis(result);
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setIsAnalyzing(false);
+      }
+  };
+
+  const runZipAnalysis = async (file: File) => {
+      setIsAnalyzing(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+          const res = await fetch(route('api.analysis.zip'), {
+              method: 'POST',
+              headers: { 'Accept': 'application/json' },
+              body: formData
+          });
+          const result = await res.json();
+          // Assuming result includes a temp token or path we should set to form?
+          // form.setData('zip_path', result.temp_path);
+          applyAnalysis(result);
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setIsAnalyzing(false);
+      }
+  };
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const applyAnalysis = (result: any) => {
+      if (result.type && page.props.configs.site.types[result.type]) {
+          form.setData('type', result.type);
+      }
+      if (result.php_version) form.setData('php_version', result.php_version);
+      if (result.node_version) form.setData('nodejs_version', result.node_version);
+      // Python/Go/Static might not have version detection implemented in detectors yet or DTO doesn't support it fully
+      // But if we did:
+      // if (result.python_version) form.setData('python_version', result.python_version);
+      
+      if (result.env_suggestions) {
+          setEnvSuggestions(result.env_suggestions);
+          setEnvValues(result.env_suggestions.map((k: string) => `${k}=`).join('\n'));
+      }
   };
 
   useEffect(() => {
@@ -92,8 +168,30 @@ export default function CreateSite({
           }
         }
       });
-    }
-  }, [form.data.type]);
+      }
+    }, [form.data.type]);
+
+
+    const slugify = (text: string) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .replace(/\./g, '_')            // Replace dots with _
+            .replace(/\s+/g, '_')           // Replace spaces with _
+            .replace(/[^\w-]+/g, '')        // Remove all non-word chars
+            .replace(/--+/g, '_')           // Replace multiple - with single _
+            .replace(/__+/g, '_')           // Replace multiple _ with single _
+            .replace(/^-+/, '')             // Trim - from start
+            .replace(/-+$/, '')             // Trim - from end
+            .substring(0, 32);
+    };
+
+    useEffect(() => {
+        if (form.data.domain && !isUserTouched) {
+            const slug = slugify(form.data.domain);
+            form.setData('user', slug);
+        }
+    }, [form.data.domain, isUserTouched]);
 
   const getFormField = (field: DynamicFieldConfig) => {
     if (field.name === 'source_control') {
@@ -153,6 +251,54 @@ export default function CreateSite({
             onValueChange={(value) => form.setData('php_version', value)}
           />
           <InputError message={form.errors.php_version} />
+        </FormField>
+      );
+    }
+
+    if (field.name === 'nodejs_version') {
+      return (
+        <FormField key={`field-${field.name}`}>
+          <Label htmlFor="nodejs_version">Node.js Version</Label>
+          <ServiceVersionSelect
+            id="nodejs_version"
+            serverId={parseInt(form.data.server)}
+            service="nodejs"
+            value={form.data.nodejs_version}
+            onValueChange={(value) => form.setData('nodejs_version', value)}
+          />
+          <InputError message={form.errors.nodejs_version} />
+        </FormField>
+      );
+    }
+
+    if (field.name === 'python_version') {
+      return (
+        <FormField key={`field-${field.name}`}>
+          <Label htmlFor="python_version">Python Version</Label>
+          <ServiceVersionSelect
+            id="python_version"
+            serverId={parseInt(form.data.server)}
+            service="python"
+            value={form.data.python_version}
+            onValueChange={(value) => form.setData('python_version', value)}
+          />
+          <InputError message={form.errors.python_version} />
+        </FormField>
+      );
+    }
+
+    if (field.name === 'go_version') {
+      return (
+        <FormField key={`field-${field.name}`}>
+          <Label htmlFor="go_version">Go Version</Label>
+          <ServiceVersionSelect
+            id="go_version"
+            serverId={parseInt(form.data.server)}
+            service="go"
+            value={form.data.go_version}
+            onValueChange={(value) => form.setData('go_version', value)}
+          />
+          <InputError message={form.errors.go_version} />
         </FormField>
       );
     }
@@ -231,6 +377,78 @@ export default function CreateSite({
                 <ServerSelect value={form.data.server} onValueChange={(value) => form.setData('server', value ? value.id.toString() : '')} />
                 <InputError message={form.errors.server} />
               </FormField>
+            )}
+
+            {form.data.server && (
+              <>
+                 <div className="space-y-4 mb-6 border p-4 rounded-md bg-muted/20">
+                     <h3 className="font-semibold mb-2">Source Code</h3>
+                     <div className="flex gap-4 mb-4">
+                         <Button type="button" variant={sourceType === 'git' ? 'default' : 'outline'} onClick={() => setSourceType('git')}>Git Repository</Button>
+                         <Button type="button" variant={sourceType === 'zip' ? 'default' : 'outline'} onClick={() => setSourceType('zip')}>Upload Zip</Button>
+                     </div>
+
+                     {sourceType === 'git' && (
+                         <>
+                            <FormField>
+                                <Label htmlFor="source_control">Source Control Provider</Label>
+                                <SourceControlSelect
+                                    id="source_control"
+                                    value={form.data.source_control}
+                                    onValueChange={(value) => form.setData('source_control', value)}
+                                />
+                                <InputError message={form.errors.source_control} />
+                            </FormField>
+                            {form.data.source_control && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField>
+                                        <Label htmlFor="repository">Repository</Label>
+                                        <SelectRepo
+                                            sourceControlId={form.data.source_control}
+                                            value={form.data.repository}
+                                            onValueChange={(value) => form.setData('repository', value)}
+                                            placeholder="owner/repository"
+                                        />
+                                        <InputError message={form.errors.repository} />
+                                    </FormField>
+                                    <FormField>
+                                        <Label htmlFor="branch">Branch</Label>
+                                        <SelectBranch
+                                            sourceControlId={form.data.source_control}
+                                            repository={form.data.repository}
+                                            value={form.data.branch}
+                                            onValueChange={(value) => {
+                                                form.setData('branch', value);
+                                                runAnalysis(form.data.repository, value);
+                                            }}
+                                            placeholder="main"
+                                        />
+                                        <InputError message={form.errors.branch} />
+                                    </FormField>
+                                </div>
+                            )}
+                         </>
+                     )}
+
+                     {sourceType === 'zip' && (
+                         <FormField>
+                             <Label>Zip File</Label>
+                             <Input type="file" accept=".zip" onChange={(e) => {
+                                 if (e.target.files?.[0]) {
+                                     runZipAnalysis(e.target.files[0]);
+                                 }
+                             }} />
+                             <p className="text-xs text-muted-foreground mt-1">Upload a zip file of your project.</p>
+                         </FormField>
+                     )}
+
+                     {isAnalyzing && (
+                         <div className="flex items-center gap-2 text-primary animate-pulse">
+                             <LoaderCircle className="h-4 w-4 animate-spin" /> Analyzing project structure...
+                         </div>
+                     )}
+                 </div>
+              </>
             )}
 
             {form.data.server && (
@@ -316,14 +534,92 @@ export default function CreateSite({
                     id="user"
                     type="text"
                     value={form.data.user}
-                    onChange={(e) => form.setData('user', e.target.value)}
+                    onChange={(e) => {
+                        form.setData('user', e.target.value);
+                        setIsUserTouched(true);
+                    }}
                     placeholder="e.g. mysite"
                   />
                   <p className="text-muted-foreground text-xs">The isolated user for the site. Must be unique on the server.</p>
                   <InputError message={form.errors.user} />
                 </FormField>
 
-                {page.props.configs.site.types[form.data.type].form?.map((config) => getFormField(config))}
+                {/* Detectable Configs Section */}
+                <div className="space-y-4 border-t pt-4">
+                    <h3 className="font-semibold text-sm text-foreground/70">Configuration</h3>
+                    {page.props.configs.site.types[form.data.type].form?.filter(f => !MANUAL_FIELDS.includes(f.name)).map((config) => getFormField(config))}
+                    
+                    {/* Render Manual Fields if they exist in config */}
+                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'php_version') && (
+                       <FormField>
+                         <Label htmlFor="php_version">PHP Version</Label>
+                         <ServiceVersionSelect
+                           id="php_version"
+                           serverId={parseInt(form.data.server)}
+                           service="php"
+                           value={form.data.php_version}
+                           onValueChange={(value) => form.setData('php_version', value)}
+                         />
+                         <InputError message={form.errors.php_version} />
+                       </FormField>
+                    )}
+
+                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'nodejs_version') && (
+                       <FormField>
+                         <Label htmlFor="nodejs_version">Node.js Version</Label>
+                         <ServiceVersionSelect
+                           id="nodejs_version"
+                           serverId={parseInt(form.data.server)}
+                           service="nodejs"
+                           value={form.data.nodejs_version}
+                           onValueChange={(value) => form.setData('nodejs_version', value)}
+                         />
+                         <InputError message={form.errors.nodejs_version} />
+                       </FormField>
+                    )}
+
+                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'python_version') && (
+                       <FormField>
+                         <Label htmlFor="python_version">Python Version</Label>
+                         <ServiceVersionSelect
+                           id="python_version"
+                           serverId={parseInt(form.data.server)}
+                           service="python"
+                           value={form.data.python_version}
+                           onValueChange={(value) => form.setData('python_version', value)}
+                         />
+                         <InputError message={form.errors.python_version} />
+                       </FormField>
+                    )}
+
+                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'go_version') && (
+                       <FormField>
+                         <Label htmlFor="go_version">Go Version</Label>
+                         <ServiceVersionSelect
+                           id="go_version"
+                           serverId={parseInt(form.data.server)}
+                           service="go"
+                           value={form.data.go_version}
+                           onValueChange={(value) => form.setData('go_version', value)}
+                         />
+                         <InputError message={form.errors.go_version} />
+                       </FormField>
+                    )}
+                </div>
+
+                {envSuggestions.length > 0 && (
+                    <div className="space-y-2 border-t pt-4">
+                        <Label>Environment Variables (Detected)</Label>
+                        <Textarea 
+                            rows={5} 
+                            value={envValues} 
+                            onChange={(e) => setEnvValues(e.target.value)} 
+                            placeholder="KEY=VALUE"
+                            className="font-mono text-sm"
+                        />
+                        <p className="text-xs text-muted-foreground">Adjust the values for your detected environment variables.</p>
+                    </div>
+                )}
               </>
             )}
           </FormFields>

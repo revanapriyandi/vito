@@ -73,6 +73,11 @@ class CreateSite
 
             // set type data
             $site->type_data = $site->type()->data($input);
+            if (isset($input['env']) && ! empty($input['env'])) {
+                $typeData = $site->type_data;
+                $typeData['initial_env'] = $input['env'];
+                $site->type_data = $typeData;
+            }
 
             // save
             $site->save();
@@ -132,9 +137,11 @@ class CreateSite
             return [];
         }
 
-        $site = new Site([
-            'server_id' => $server->id,
-            'type' => $input['type']]
+        $site = new Site(
+            [
+                'server_id' => $server->id,
+                'type' => $input['type'],
+            ]
         );
 
         return $site->type()->createRules($input);

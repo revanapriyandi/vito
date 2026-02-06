@@ -91,6 +91,7 @@ class NodeJS extends AbstractSiteType
         $this->deployKey();
         $this->progress(30);
         app(Git::class)->clone($this->site);
+        $this->writeInitialEnv();
         $this->site->server->ssh($this->site->user)->exec(
             __('npm install --prefix=:path', [
                 'path' => $this->site->path,

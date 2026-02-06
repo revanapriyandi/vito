@@ -58,6 +58,7 @@ class StaticHTML extends AbstractSiteType
         $this->deployKey();
         $this->progress(30);
         app(Git::class)->clone($this->site);
+        $this->writeInitialEnv();
         $this->progress(100);
     }
 

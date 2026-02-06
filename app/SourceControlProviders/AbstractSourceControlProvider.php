@@ -70,4 +70,9 @@ abstract class AbstractSourceControlProvider implements SourceControlProvider
     {
         return [];
     }
+
+    public function getFileContent(string $repo, string $branch, string $path): ?string
+    {
+        return null;
+    }
 }

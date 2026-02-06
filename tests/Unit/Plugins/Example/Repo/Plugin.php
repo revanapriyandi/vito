@@ -24,7 +24,7 @@ class Plugin extends AbstractPlugin
 
     private static function recordCall(string $method): void
     {
-        if (!isset(self::$calledMethods[$method])) {
+        if (! isset(self::$calledMethods[$method])) {
             self::$calledMethods[$method] = 0;
         }
         self::$calledMethods[$method]++;

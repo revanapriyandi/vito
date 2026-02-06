@@ -89,4 +89,25 @@ abstract class AbstractSiteType implements SiteType
             );
         }
     }
+
+    /**
+     * @throws SSHError
+     */
+    protected function writeInitialEnv(): void
+    {
+        if (isset($this->site->type_data['initial_env'])) {
+            $envPath = $this->site->type_data['env_path'] ?? $this->site->path.'/.env';
+            $this->site->server->os()->write(
+                $envPath,
+                trim((string) $this->site->type_data['initial_env']),
+                $this->site->user
+            );
+
+            // Cleanup initial_env from type_data to avoid clutter/confusion
+            $typeData = $this->site->type_data;
+            unset($typeData['initial_env']);
+            $this->site->type_data = $typeData;
+            $this->site->save();
+        }
+    }
 }

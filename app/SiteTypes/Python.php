@@ -69,6 +69,7 @@ class Python extends AbstractSiteType
         $this->deployKey();
         $this->progress(30);
         app(Git::class)->clone($this->site);
+        $this->writeInitialEnv();
 
         if (! empty($this->site->type_data['install_command'])) {
             $this->site->server->ssh($this->site->user)->exec(
