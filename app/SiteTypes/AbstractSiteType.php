@@ -12,7 +12,9 @@ use RuntimeException;
 
 abstract class AbstractSiteType implements SiteType
 {
-    public function __construct(protected Site $site) {}
+    public function __construct(protected Site $site)
+    {
+    }
 
     abstract public static function make(): self;
 
@@ -48,6 +50,11 @@ abstract class AbstractSiteType implements SiteType
      */
     protected function deployKey(): void
     {
+        // Skip deploy key for sites without repository (Zip uploads, manual deployments, etc)
+        if (empty($this->site->repository) || empty($this->site->source_control_id)) {
+            return;
+        }
+
         $os = $this->site->server->os();
         $os->generateSSHKey($this->site->getSshKeyName(), $this->site);
         $this->site->ssh_key = $os->readSSHKey($this->site->getSshKeyName(), $this->site);
@@ -65,7 +72,7 @@ abstract class AbstractSiteType implements SiteType
      */
     protected function isolate(): void
     {
-        if (! $this->site->isIsolated()) {
+        if (!$this->site->isIsolated()) {
             return;
         }
 
@@ -78,7 +85,7 @@ abstract class AbstractSiteType implements SiteType
         // Generate the FPM pool
         if ($this->site->php_version) {
             $service = $this->site->php();
-            if (! $service instanceof Service) {
+            if (!$service instanceof Service) {
                 throw new RuntimeException('PHP service not found');
             }
             /** @var PHP $php */
@@ -96,7 +103,7 @@ abstract class AbstractSiteType implements SiteType
     protected function writeInitialEnv(): void
     {
         if (isset($this->site->type_data['initial_env'])) {
-            $envPath = $this->site->type_data['env_path'] ?? $this->site->path.'/.env';
+            $envPath = $this->site->type_data['env_path'] ?? $this->site->path . '/.env';
             $this->site->server->os()->write(
                 $envPath,
                 trim((string) $this->site->type_data['initial_env']),
