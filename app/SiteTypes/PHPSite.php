@@ -75,9 +75,9 @@ class PHPSite extends AbstractSiteType
     {
         return [
             'web_directory' => $this->normalizeWebDirectory($input['web_directory'] ?? ''),
-            'source_control_id' => $input['source_control'] ?? '',
-            'repository' => $input['repository'] ?? '',
-            'branch' => $input['branch'] ?? '',
+            'source_control_id' => $input['source_control'] ?? null,
+            'repository' => $input['repository'] ?? null,
+            'branch' => $input['branch'] ?? null,
             'php_version' => $input['php_version'] ?? '',
             'composer' => $input['composer'] ?? '',
         ];

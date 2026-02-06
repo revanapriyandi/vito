@@ -53,9 +53,9 @@ class StaticHTML extends AbstractSiteType
     public function createFields(array $input): array
     {
         return [
-            'source_control_id' => $input['source_control'] ?? '',
-            'repository' => $input['repository'] ?? '',
-            'branch' => $input['branch'] ?? '',
+            'source_control_id' => $input['source_control'] ?? null,
+            'repository' => $input['repository'] ?? null,
+            'branch' => $input['branch'] ?? null,
             'web_directory' => $input['web_directory'] ?? '',
         ];
     }
