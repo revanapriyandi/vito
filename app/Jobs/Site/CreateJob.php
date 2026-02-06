@@ -18,12 +18,26 @@ class CreateJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected Site $site) {}
+    public function __construct(protected Site $site, protected ?string $zipPath = null)
+    {
+    }
 
     public function handle(): void
     {
         $this->run("server-{$this->site->server_id}", function () {
-            $this->site->type()->install();
+            $type = $this->site->type();
+
+            $type->install();
+
+            if ($this->zipPath) {
+                // Determine absolute path if relative
+                $path = $this->zipPath;
+                if (!str_starts_with($path, '/') && !str_starts_with($path, 'c:') && !str_starts_with($path, 'C:')) {
+                    $path = storage_path('app/' . $this->zipPath);
+                }
+                $type->handleZip($path);
+            }
+
             $this->site->update([
                 'status' => SiteStatus::READY,
                 'progress' => 100,

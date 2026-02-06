@@ -42,4 +42,6 @@ interface SiteType
     public function baseCommands(): array;
 
     public function vhost(string $webserver): string|View;
+
+    public function handleZip(string $zipPath): void;
 }

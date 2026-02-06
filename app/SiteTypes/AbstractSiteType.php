@@ -117,4 +117,30 @@ abstract class AbstractSiteType implements SiteType
             $this->site->save();
         }
     }
+
+    public function handleZip(string $zipPath): void
+    {
+        if (!file_exists($zipPath)) {
+            return;
+        }
+
+        $remotePath = $this->site->path . '/source.zip';
+
+        // Upload zip file
+        $this->site->server->ssh()->upload($zipPath, $remotePath, $this->site->user);
+
+        // Unzip and set permissions
+        // -o: overwrite existing files without prompting
+        // -d: extract to directory
+        $this->site->server->ssh()->exec("unzip -o $remotePath -d {$this->site->path}");
+
+        // Remove zip file
+        $this->site->server->ssh()->exec("rm $remotePath");
+
+        // Fix permissions
+        $this->site->server->ssh()->exec("chown -R {$this->site->user}:{$this->site->user} {$this->site->path}");
+
+        // Delete local file
+        @unlink($zipPath);
+    }
 }

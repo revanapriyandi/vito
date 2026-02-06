@@ -103,6 +103,23 @@ export default function CreateSite({
     env: '',
   });
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const applyAnalysis = (result: any) => {
+      if (result.type && page.props.configs.site.types[result.type]) {
+          form.setData('type', result.type);
+      }
+      if (result.php_version) form.setData('php_version', result.php_version);
+      if (result.node_version) form.setData('nodejs_version', result.node_version);
+      // Python/Go/Static might not have version detection implemented in detectors yet or DTO doesn't support it fully
+      // But if we did:
+      // if (result.python_version) form.setData('python_version', result.python_version);
+      
+      if (result.env_suggestions) {
+          setEnvSuggestions(result.env_suggestions);
+          setEnvValues(result.env_suggestions.map((k: string) => `${k}=`).join('\n'));
+      }
+  };
+
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     form.setData('env', envValues);
@@ -113,10 +130,17 @@ export default function CreateSite({
       const dataWithoutGit = Object.fromEntries(
         Object.entries(form.data).filter(([key]) => !gitFields.includes(key))
       );
+      /* @ts-expect-error dynamic types */
+      if (form.data.zip_file) {
+          /* @ts-expect-error dynamic types */
+          dataWithoutGit['zip_file'] = form.data.zip_file;
+      }
       form.transform(() => dataWithoutGit);
     }
     
-    form.post(route('sites.store', { server: form.data.server }));
+    form.post(route('sites.store', { server: form.data.server }), {
+        forceFormData: true,
+    });
   };
 
   const runAnalysis = async (repo: string, branch: string) => {
@@ -137,6 +161,9 @@ export default function CreateSite({
 
   const runZipAnalysis = async (file: File) => {
       setIsAnalyzing(true);
+      /* @ts-expect-error dynamic types */
+      form.setData('zip_file', file);
+      
       const formData = new FormData();
       formData.append('file', file);
       try {
@@ -150,23 +177,6 @@ export default function CreateSite({
           console.error(e);
       } finally {
           setIsAnalyzing(false);
-      }
-  };
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const applyAnalysis = (result: any) => {
-      if (result.type && page.props.configs.site.types[result.type]) {
-          form.setData('type', result.type);
-      }
-      if (result.php_version) form.setData('php_version', result.php_version);
-      if (result.node_version) form.setData('nodejs_version', result.node_version);
-      // Python/Go/Static might not have version detection implemented in detectors yet or DTO doesn't support it fully
-      // But if we did:
-      // if (result.python_version) form.setData('python_version', result.python_version);
-      
-      if (result.env_suggestions) {
-          setEnvSuggestions(result.env_suggestions);
-          setEnvValues(result.env_suggestions.map((k: string) => `${k}=`).join('\n'));
       }
   };
 

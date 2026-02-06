@@ -123,20 +123,25 @@ class CreateSite
                             'name' => $subdomain,
                             'content' => $server->ip,
                             'ttl' => 1, // Auto
-                            'proxied' => false,
+                            'proxied' => true,
                         ];
 
                         app(\App\Actions\Domain\CreateDNSRecord::class)->create($domain, $dnsInput);
                     } catch (ValidationException $e) {
                         throw $e;
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         // Log error but don't fail site creation logic unless it's validation
                     }
                 }
             }
 
             // install site
-            dispatch(new CreateJob($site))->onQueue('ssh');
+            $zipPath = null;
+            if (isset($input['zip_file']) && $input['zip_file'] instanceof \Illuminate\Http\UploadedFile) {
+                $zipPath = $input['zip_file']->store('sites-zips');
+            }
+
+            dispatch(new CreateJob($site, $zipPath))->onQueue('ssh');
 
             DB::commit();
 
