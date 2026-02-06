@@ -40,16 +40,19 @@ class NodeJS extends AbstractSiteType
 
     public function createRules(array $input): array
     {
+        // For Zip deployments, source_control/repository/branch are not provided
+        $hasSourceControl = !empty($input['source_control'] ?? null);
+
         return [
             'source_control' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
                 Rule::exists('source_controls', 'id'),
             ],
             'repository' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
             ],
             'branch' => [
-                'required',
+                $hasSourceControl ? 'required' : 'nullable',
             ],
             'port' => [
                 'required',

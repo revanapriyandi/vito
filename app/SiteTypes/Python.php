@@ -37,12 +37,29 @@ class Python extends AbstractSiteType
 
     public function createRules(array $input): array
     {
+        // For Zip deployments, source_control/repository/branch are not provided
+        $hasSourceControl = !empty($input['source_control'] ?? null);
+
         return [
-            'source_control' => ['required', Rule::exists('source_controls', 'id')],
-            'repository' => ['required'],
-            'branch' => ['required'],
-            'port' => ['required', 'numeric', 'between:1,65535'],
-            'start_command' => ['required', 'string'],
+            'source_control' => [
+                $hasSourceControl ? 'required' : 'nullable',
+                Rule::exists('source_controls', 'id'),
+            ],
+            'repository' => [
+                $hasSourceControl ? 'required' : 'nullable',
+            ],
+            'branch' => [
+                $hasSourceControl ? 'required' : 'nullable',
+            ],
+            'port' => [
+                'required',
+                'numeric',
+                'between:1,65535',
+            ],
+            'start_command' => [
+                'required',
+                'string',
+            ],
         ];
     }
 
@@ -71,7 +88,7 @@ class Python extends AbstractSiteType
         app(Git::class)->clone($this->site);
         $this->writeInitialEnv();
 
-        if (! empty($this->site->type_data['install_command'])) {
+        if (!empty($this->site->type_data['install_command'])) {
             $this->site->server->ssh($this->site->user)->exec(
                 $this->site->type_data['install_command'],
                 'install-dependencies',
