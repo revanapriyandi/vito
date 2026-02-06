@@ -1,4 +1,6 @@
-cd $SITE_PATH
+# Ensure we are in the site directory
+cd $SITE_PATH || exit 1
+echo "Current directory: $(pwd)"
 
 if [ -d ".git" ]; then
   git pull origin $BRANCH
