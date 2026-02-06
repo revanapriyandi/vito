@@ -24,9 +24,9 @@ export default function ServiceVersionSelect({
   });
 
   React.useEffect(() => {
-      if (query.isSuccess && query.data.length === 1 && !value) {
-          onValueChange(query.data[0]);
-      }
+    if (query.isSuccess && query.data.length === 1 && !value) {
+      onValueChange(query.data[0]);
+    }
   }, [query.data, query.isSuccess, value, onValueChange]);
 
   return (

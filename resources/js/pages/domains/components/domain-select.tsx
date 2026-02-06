@@ -24,13 +24,7 @@ interface DomainSelectProps {
   className?: string;
 }
 
-export default function DomainSelect({
-  value,
-  onValueChange,
-  id,
-  placeholder = 'Select domain...',
-  className,
-}: DomainSelectProps) {
+export default function DomainSelect({ value, onValueChange, id, placeholder = 'Select domain...', className }: DomainSelectProps) {
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

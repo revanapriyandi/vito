@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import axios from 'axios';
+
 import { Repo } from '@/types/repo';
 import { LoaderCircleIcon, StarIcon } from 'lucide-react';
 import { CardRow } from '@/components/ui/card';
@@ -18,11 +18,10 @@ export default function CommunityPlugins() {
   }>({
     queryKey: ['community-plugins'],
     queryFn: async ({ pageParam }) => {
-      const data = (
-        await axios.create().get(
-          'https://api.github.com/search/repositories?q=-owner:vitodeploy%20topic:vitodeploy-plugin%20fork:true&per_page=10&page=' + pageParam,
-        )
-      ).data;
+      const response = await fetch(
+        'https://api.github.com/search/repositories?q=-owner:vitodeploy%20topic:vitodeploy-plugin%20fork:true&per_page=10&page=' + pageParam
+      );
+      const data = await response.json();
       if (data.items.length == 10) {
         data.next_page = (pageParam as number) + 1;
       }

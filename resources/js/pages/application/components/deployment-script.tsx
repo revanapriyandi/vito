@@ -75,7 +75,7 @@ export default function DeploymentScript({
                 fontSize: 15,
               }}
             />
-            <div className="absolute! right-0 bottom-4 left-0 z-10 mx-auto  px-4">
+            <div className="absolute! right-0 bottom-4 left-0 z-10 mx-auto px-4">
               <Alert>
                 <AlertDescription className="flex items-center gap-2">
                   <StatusRipple variant="default" />

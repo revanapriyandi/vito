@@ -31,7 +31,19 @@ import SelectBranch from '@/pages/source-controls/components/select-branch';
 import { Textarea } from '@/components/ui/textarea';
 import DomainSelect from '@/pages/domains/components/domain-select';
 
-const MANUAL_FIELDS = ['source_control', 'repository', 'branch', 'php_version', 'web_directory', 'nodejs_version', 'python_version', 'go_version', 'build_command', 'start_command', 'install_command'];
+const MANUAL_FIELDS = [
+  'source_control',
+  'repository',
+  'branch',
+  'php_version',
+  'web_directory',
+  'nodejs_version',
+  'python_version',
+  'go_version',
+  'build_command',
+  'start_command',
+  'install_command',
+];
 
 type CreateSiteForm = {
   server: string;
@@ -106,104 +118,99 @@ export default function CreateSite({
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const applyAnalysis = (result: any) => {
-      if (result.type && page.props.configs.site.types[result.type]) {
-          form.setData('type', result.type);
-      }
-      if (result.php_version) form.setData('php_version', result.php_version);
-      if (result.node_version) form.setData('nodejs_version', result.node_version);
-      // Python/Go/Static might not have version detection implemented in detectors yet or DTO doesn't support it fully
-      // But if we did:
-      // if (result.python_version) form.setData('python_version', result.python_version);
-      
-      if (result.env_suggestions) {
-          setEnvSuggestions(result.env_suggestions);
-          setEnvValues(result.env_suggestions.map((k: string) => `${k}=`).join('\n'));
-      }
+    if (result.type && page.props.configs.site.types[result.type]) {
+      form.setData('type', result.type);
+    }
+    if (result.php_version) form.setData('php_version', result.php_version);
+    if (result.node_version) form.setData('nodejs_version', result.node_version);
+    // Python/Go/Static might not have version detection implemented in detectors yet or DTO doesn't support it fully
+    // But if we did:
+    // if (result.python_version) form.setData('python_version', result.python_version);
+
+    if (result.env_suggestions) {
+      setEnvSuggestions(result.env_suggestions);
+      setEnvValues(result.env_suggestions.map((k: string) => `${k}=`).join('\n'));
+    }
   };
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     form.setData('env', envValues);
-    
+
     // For Zip uploads, exclude Git-related fields to avoid validation errors
     if (sourceType === 'zip') {
       const gitFields = ['source_control', 'repository', 'branch'];
-      const dataWithoutGit = Object.fromEntries(
-        Object.entries(form.data).filter(([key]) => !gitFields.includes(key))
-      );
+      const dataWithoutGit = Object.fromEntries(Object.entries(form.data).filter(([key]) => !gitFields.includes(key)));
       /* @ts-expect-error dynamic types */
       if (form.data.zip_file) {
-          /* @ts-expect-error dynamic types */
-          dataWithoutGit['zip_file'] = form.data.zip_file;
+        /* @ts-expect-error dynamic types */
+        dataWithoutGit['zip_file'] = form.data.zip_file;
       }
       form.transform(() => dataWithoutGit);
     }
-    
+
     form.post(route('sites.store', { server: form.data.server }), {
-        forceFormData: true,
+      forceFormData: true,
     });
   };
 
   const runAnalysis = async (repo: string, branch: string) => {
-      setIsAnalyzing(true);
-      try {
-          const res = await axios.post(route('api.analysis.git'), {
-              source_control_id: form.data.source_control,
-              repository: repo,
-              branch: branch
-          });
-          applyAnalysis(res.data);
-      } catch (e) {
-          console.error(e);
-      } finally {
-          setIsAnalyzing(false);
-      }
+    setIsAnalyzing(true);
+    try {
+      const res = await axios.post(route('api.analysis.git'), {
+        source_control_id: form.data.source_control,
+        repository: repo,
+        branch: branch,
+      });
+      applyAnalysis(res.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const runZipAnalysis = async (file: File) => {
-      setIsAnalyzing(true);
-      /* @ts-expect-error dynamic types */
-      form.setData('zip_file', file);
-      
-      try {
-          const zip = new JSZip();
-          const contents = await zip.loadAsync(file);
-          
-          // 1. Detect Type
-          let detectedType = '';
-          if (contents.file('composer.json')) detectedType = 'php';
-          else if (contents.file('package.json')) detectedType = 'nodejs';
-          else if (contents.file('requirements.txt') || contents.file('pyproject.toml')) detectedType = 'python';
-          else if (contents.file('go.mod')) detectedType = 'go';
-          else if (contents.file('index.html')) detectedType = 'static-html';
+    setIsAnalyzing(true);
+    /* @ts-expect-error dynamic types */
+    form.setData('zip_file', file);
 
-          // 2. Detect Env
-          let envContent = '';
-          if (contents.file('.env.example')) {
-              envContent = await contents.file('.env.example')!.async('string');
-          } else if (contents.file('.env')) {
-              envContent = await contents.file('.env')!.async('string');
-          }
+    try {
+      const zip = new JSZip();
+      const contents = await zip.loadAsync(file);
 
-          let suggestions: string[] = [];
-          if (envContent) {
-              const lines = envContent.split('\n');
-              suggestions = lines
-                  .filter(line => line.trim() !== '' && !line.startsWith('#'))
-                  .map(line => line.split('=')[0].trim());
-          }
+      // 1. Detect Type
+      let detectedType = '';
+      if (contents.file('composer.json')) detectedType = 'php';
+      else if (contents.file('package.json')) detectedType = 'nodejs';
+      else if (contents.file('requirements.txt') || contents.file('pyproject.toml')) detectedType = 'python';
+      else if (contents.file('go.mod')) detectedType = 'go';
+      else if (contents.file('index.html')) detectedType = 'static-html';
 
-          applyAnalysis({
-              type: detectedType,
-              env_suggestions: suggestions,
-              // We could also parse composer.json for php version if we wanted to go deeper
-          });
-
-      } catch (e) {
-          console.error("Zip analysis failed:", e);
-      } finally {
-          setIsAnalyzing(false);
+      // 2. Detect Env
+      let envContent = '';
+      if (contents.file('.env.example')) {
+        envContent = await contents.file('.env.example')!.async('string');
+      } else if (contents.file('.env')) {
+        envContent = await contents.file('.env')!.async('string');
       }
+
+      let suggestions: string[] = [];
+      if (envContent) {
+        const lines = envContent.split('\n');
+        suggestions = lines.filter((line) => line.trim() !== '' && !line.startsWith('#')).map((line) => line.split('=')[0].trim());
+      }
+
+      applyAnalysis({
+        type: detectedType,
+        env_suggestions: suggestions,
+        // We could also parse composer.json for php version if we wanted to go deeper
+      });
+    } catch (e) {
+      console.error('Zip analysis failed:', e);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   useEffect(() => {
@@ -219,30 +226,29 @@ export default function CreateSite({
           }
         }
       });
-      }
-    }, [form.data.type]);
+    }
+  }, [form.data.type]);
 
+  const slugify = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .replace(/\./g, '_') // Replace dots with _
+      .replace(/\s+/g, '_') // Replace spaces with _
+      .replace(/[^\w-]+/g, '') // Remove all non-word chars
+      .replace(/--+/g, '_') // Replace multiple - with single _
+      .replace(/__+/g, '_') // Replace multiple _ with single _
+      .replace(/^-+/, '') // Trim - from start
+      .replace(/-+$/, '') // Trim - from end
+      .substring(0, 32);
+  };
 
-    const slugify = (text: string) => {
-        return text
-            .toString()
-            .toLowerCase()
-            .replace(/\./g, '_')            // Replace dots with _
-            .replace(/\s+/g, '_')           // Replace spaces with _
-            .replace(/[^\w-]+/g, '')        // Remove all non-word chars
-            .replace(/--+/g, '_')           // Replace multiple - with single _
-            .replace(/__+/g, '_')           // Replace multiple _ with single _
-            .replace(/^-+/, '')             // Trim - from start
-            .replace(/-+$/, '')             // Trim - from end
-            .substring(0, 32);
-    };
-
-    useEffect(() => {
-        if (form.data.domain && !isUserTouched) {
-            const slug = slugify(form.data.domain);
-            form.setData('user', slug);
-        }
-    }, [form.data.domain, isUserTouched]);
+  useEffect(() => {
+    if (form.data.domain && !isUserTouched) {
+      const slug = slugify(form.data.domain);
+      form.setData('user', slug);
+    }
+  }, [form.data.domain, isUserTouched]);
 
   const getFormField = (field: DynamicFieldConfig) => {
     if (field.name === 'source_control') {
@@ -432,73 +438,81 @@ export default function CreateSite({
 
             {form.data.server && (
               <>
-                 <div className="space-y-4 mb-6 border p-4 rounded-md bg-muted/20">
-                     <h3 className="font-semibold mb-2">Source Code</h3>
-                     <div className="flex gap-4 mb-4">
-                         <Button type="button" variant={sourceType === 'git' ? 'default' : 'outline'} onClick={() => setSourceType('git')}>Git Repository</Button>
-                         <Button type="button" variant={sourceType === 'zip' ? 'default' : 'outline'} onClick={() => setSourceType('zip')}>Upload Zip</Button>
-                     </div>
+                <div className="bg-muted/20 mb-6 space-y-4 rounded-md border p-4">
+                  <h3 className="mb-2 font-semibold">Source Code</h3>
+                  <div className="mb-4 flex gap-4">
+                    <Button type="button" variant={sourceType === 'git' ? 'default' : 'outline'} onClick={() => setSourceType('git')}>
+                      Git Repository
+                    </Button>
+                    <Button type="button" variant={sourceType === 'zip' ? 'default' : 'outline'} onClick={() => setSourceType('zip')}>
+                      Upload Zip
+                    </Button>
+                  </div>
 
-                     {sourceType === 'git' && (
-                         <>
-                            <FormField>
-                                <Label htmlFor="source_control">Source Control Provider</Label>
-                                <SourceControlSelect
-                                    id="source_control"
-                                    value={form.data.source_control}
-                                    onValueChange={(value) => form.setData('source_control', value)}
-                                />
-                                <InputError message={form.errors.source_control} />
-                            </FormField>
-                            {form.data.source_control && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField>
-                                        <Label htmlFor="repository">Repository</Label>
-                                        <SelectRepo
-                                            sourceControlId={form.data.source_control}
-                                            value={form.data.repository}
-                                            onValueChange={(value) => form.setData('repository', value)}
-                                            placeholder="owner/repository"
-                                        />
-                                        <InputError message={form.errors.repository} />
-                                    </FormField>
-                                    <FormField>
-                                        <Label htmlFor="branch">Branch</Label>
-                                        <SelectBranch
-                                            sourceControlId={form.data.source_control}
-                                            repository={form.data.repository}
-                                            value={form.data.branch}
-                                            onValueChange={(value) => {
-                                                form.setData('branch', value);
-                                                runAnalysis(form.data.repository, value);
-                                            }}
-                                            placeholder="main"
-                                        />
-                                        <InputError message={form.errors.branch} />
-                                    </FormField>
-                                </div>
-                            )}
-                         </>
-                     )}
+                  {sourceType === 'git' && (
+                    <>
+                      <FormField>
+                        <Label htmlFor="source_control">Source Control Provider</Label>
+                        <SourceControlSelect
+                          id="source_control"
+                          value={form.data.source_control}
+                          onValueChange={(value) => form.setData('source_control', value)}
+                        />
+                        <InputError message={form.errors.source_control} />
+                      </FormField>
+                      {form.data.source_control && (
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <FormField>
+                            <Label htmlFor="repository">Repository</Label>
+                            <SelectRepo
+                              sourceControlId={form.data.source_control}
+                              value={form.data.repository}
+                              onValueChange={(value) => form.setData('repository', value)}
+                              placeholder="owner/repository"
+                            />
+                            <InputError message={form.errors.repository} />
+                          </FormField>
+                          <FormField>
+                            <Label htmlFor="branch">Branch</Label>
+                            <SelectBranch
+                              sourceControlId={form.data.source_control}
+                              repository={form.data.repository}
+                              value={form.data.branch}
+                              onValueChange={(value) => {
+                                form.setData('branch', value);
+                                runAnalysis(form.data.repository, value);
+                              }}
+                              placeholder="main"
+                            />
+                            <InputError message={form.errors.branch} />
+                          </FormField>
+                        </div>
+                      )}
+                    </>
+                  )}
 
-                     {sourceType === 'zip' && (
-                         <FormField>
-                             <Label>Zip File</Label>
-                             <Input type="file" accept=".zip" onChange={(e) => {
-                                 if (e.target.files?.[0]) {
-                                     runZipAnalysis(e.target.files[0]);
-                                 }
-                             }} />
-                             <p className="text-xs text-muted-foreground mt-1">Upload a zip file of your project.</p>
-                         </FormField>
-                     )}
+                  {sourceType === 'zip' && (
+                    <FormField>
+                      <Label>Zip File</Label>
+                      <Input
+                        type="file"
+                        accept=".zip"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            runZipAnalysis(e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <p className="text-muted-foreground mt-1 text-xs">Upload a zip file of your project.</p>
+                    </FormField>
+                  )}
 
-                     {isAnalyzing && (
-                         <div className="flex items-center gap-2 text-primary animate-pulse">
-                             <LoaderCircle className="h-4 w-4 animate-spin" /> Analyzing project structure...
-                         </div>
-                     )}
-                 </div>
+                  {isAnalyzing && (
+                    <div className="text-primary flex animate-pulse items-center gap-2">
+                      <LoaderCircle className="h-4 w-4 animate-spin" /> Analyzing project structure...
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
@@ -527,9 +541,11 @@ export default function CreateSite({
                   <Label>Domain</Label>
                   <div className="space-y-3">
                     {/* Option 1: Use Registered Domain with Subdomain */}
-                    <div className="flex gap-2 items-end">
+                    <div className="flex items-end gap-2">
                       <div className="flex-1">
-                        <Label htmlFor="subdomain" className="text-xs text-muted-foreground">Subdomain (optional)</Label>
+                        <Label htmlFor="subdomain" className="text-muted-foreground text-xs">
+                          Subdomain (optional)
+                        </Label>
                         <Input
                           id="subdomain"
                           placeholder="e.g., app, api, www"
@@ -546,7 +562,9 @@ export default function CreateSite({
                       </div>
                       <span className="text-muted-foreground pb-2">.</span>
                       <div className="flex-[2]">
-                        <Label htmlFor="domain-select" className="text-xs text-muted-foreground">Registered Domain</Label>
+                        <Label htmlFor="domain-select" className="text-muted-foreground text-xs">
+                          Registered Domain
+                        </Label>
                         <DomainSelect
                           id="domain-select"
                           value={form.data.selected_domain_id}
@@ -564,13 +582,15 @@ export default function CreateSite({
                     {/* OR Separator */}
                     <div className="flex items-center gap-2">
                       <div className="flex-1 border-t" />
-                      <span className="text-xs text-muted-foreground">OR</span>
+                      <span className="text-muted-foreground text-xs">OR</span>
                       <div className="flex-1 border-t" />
                     </div>
 
                     {/* Option 2: Custom Domain */}
                     <div>
-                      <Label htmlFor="custom-domain" className="text-xs text-muted-foreground">Custom Domain</Label>
+                      <Label htmlFor="custom-domain" className="text-muted-foreground text-xs">
+                        Custom Domain
+                      </Label>
                       <Input
                         id="custom-domain"
                         placeholder="your-domain.com"
@@ -638,8 +658,8 @@ export default function CreateSite({
                     type="text"
                     value={form.data.user}
                     onChange={(e) => {
-                        form.setData('user', e.target.value);
-                        setIsUserTouched(true);
+                      form.setData('user', e.target.value);
+                      setIsUserTouched(true);
                     }}
                     placeholder="e.g. mysite"
                   />
@@ -649,79 +669,81 @@ export default function CreateSite({
 
                 {/* Detectable Configs Section */}
                 <div className="space-y-4 border-t pt-4">
-                    <h3 className="font-semibold text-sm text-foreground/70">Configuration</h3>
-                    {page.props.configs.site.types[form.data.type].form?.filter(f => !MANUAL_FIELDS.includes(f.name)).map((config) => getFormField(config))}
-                    
-                    {/* Render Manual Fields if they exist in config */}
-                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'php_version') && (
-                       <FormField>
-                         <Label htmlFor="php_version">PHP Version</Label>
-                         <ServiceVersionSelect
-                           id="php_version"
-                           serverId={parseInt(form.data.server)}
-                           service="php"
-                           value={form.data.php_version}
-                           onValueChange={(value) => form.setData('php_version', value)}
-                         />
-                         <InputError message={form.errors.php_version} />
-                       </FormField>
-                    )}
+                  <h3 className="text-foreground/70 text-sm font-semibold">Configuration</h3>
+                  {page.props.configs.site.types[form.data.type].form
+                    ?.filter((f) => !MANUAL_FIELDS.includes(f.name))
+                    .map((config) => getFormField(config))}
 
-                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'nodejs_version') && (
-                       <FormField>
-                         <Label htmlFor="nodejs_version">Node.js Version</Label>
-                         <ServiceVersionSelect
-                           id="nodejs_version"
-                           serverId={parseInt(form.data.server)}
-                           service="nodejs"
-                           value={form.data.nodejs_version}
-                           onValueChange={(value) => form.setData('nodejs_version', value)}
-                         />
-                         <InputError message={form.errors.nodejs_version} />
-                       </FormField>
-                    )}
+                  {/* Render Manual Fields if they exist in config */}
+                  {page.props.configs.site.types[form.data.type].form?.find((f) => f.name === 'php_version') && (
+                    <FormField>
+                      <Label htmlFor="php_version">PHP Version</Label>
+                      <ServiceVersionSelect
+                        id="php_version"
+                        serverId={parseInt(form.data.server)}
+                        service="php"
+                        value={form.data.php_version}
+                        onValueChange={(value) => form.setData('php_version', value)}
+                      />
+                      <InputError message={form.errors.php_version} />
+                    </FormField>
+                  )}
 
-                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'python_version') && (
-                       <FormField>
-                         <Label htmlFor="python_version">Python Version</Label>
-                         <ServiceVersionSelect
-                           id="python_version"
-                           serverId={parseInt(form.data.server)}
-                           service="python"
-                           value={form.data.python_version}
-                           onValueChange={(value) => form.setData('python_version', value)}
-                         />
-                         <InputError message={form.errors.python_version} />
-                       </FormField>
-                    )}
+                  {page.props.configs.site.types[form.data.type].form?.find((f) => f.name === 'nodejs_version') && (
+                    <FormField>
+                      <Label htmlFor="nodejs_version">Node.js Version</Label>
+                      <ServiceVersionSelect
+                        id="nodejs_version"
+                        serverId={parseInt(form.data.server)}
+                        service="nodejs"
+                        value={form.data.nodejs_version}
+                        onValueChange={(value) => form.setData('nodejs_version', value)}
+                      />
+                      <InputError message={form.errors.nodejs_version} />
+                    </FormField>
+                  )}
 
-                    {page.props.configs.site.types[form.data.type].form?.find(f => f.name === 'go_version') && (
-                       <FormField>
-                         <Label htmlFor="go_version">Go Version</Label>
-                         <ServiceVersionSelect
-                           id="go_version"
-                           serverId={parseInt(form.data.server)}
-                           service="go"
-                           value={form.data.go_version}
-                           onValueChange={(value) => form.setData('go_version', value)}
-                         />
-                         <InputError message={form.errors.go_version} />
-                       </FormField>
-                    )}
+                  {page.props.configs.site.types[form.data.type].form?.find((f) => f.name === 'python_version') && (
+                    <FormField>
+                      <Label htmlFor="python_version">Python Version</Label>
+                      <ServiceVersionSelect
+                        id="python_version"
+                        serverId={parseInt(form.data.server)}
+                        service="python"
+                        value={form.data.python_version}
+                        onValueChange={(value) => form.setData('python_version', value)}
+                      />
+                      <InputError message={form.errors.python_version} />
+                    </FormField>
+                  )}
+
+                  {page.props.configs.site.types[form.data.type].form?.find((f) => f.name === 'go_version') && (
+                    <FormField>
+                      <Label htmlFor="go_version">Go Version</Label>
+                      <ServiceVersionSelect
+                        id="go_version"
+                        serverId={parseInt(form.data.server)}
+                        service="go"
+                        value={form.data.go_version}
+                        onValueChange={(value) => form.setData('go_version', value)}
+                      />
+                      <InputError message={form.errors.go_version} />
+                    </FormField>
+                  )}
                 </div>
 
                 {envSuggestions.length > 0 && (
-                    <div className="space-y-2 border-t pt-4">
-                        <Label>Environment Variables (Detected)</Label>
-                        <Textarea 
-                            rows={5} 
-                            value={envValues} 
-                            onChange={(e) => setEnvValues(e.target.value)} 
-                            placeholder="KEY=VALUE"
-                            className="font-mono text-sm"
-                        />
-                        <p className="text-xs text-muted-foreground">Adjust the values for your detected environment variables.</p>
-                    </div>
+                  <div className="space-y-2 border-t pt-4">
+                    <Label>Environment Variables (Detected)</Label>
+                    <Textarea
+                      rows={5}
+                      value={envValues}
+                      onChange={(e) => setEnvValues(e.target.value)}
+                      placeholder="KEY=VALUE"
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-muted-foreground text-xs">Adjust the values for your detected environment variables.</p>
+                  </div>
                 )}
               </>
             )}

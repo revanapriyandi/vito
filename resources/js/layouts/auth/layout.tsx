@@ -19,9 +19,9 @@ export default function AuthLayout({ children, title, description }: PropsWithCh
             <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
               <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
                 {page.props.logo ? (
-                    <img src={page.props.logo} alt={page.props.name} className="size-9 object-contain" />
+                  <img src={page.props.logo} alt={page.props.name} className="size-9 object-contain" />
                 ) : (
-                    <AppLogoIcon className="text-foreground size-9 rounded-sm fill-current" />
+                  <AppLogoIcon className="text-foreground size-9 rounded-sm fill-current" />
                 )}
               </div>
               <span className="sr-only">{title}</span>

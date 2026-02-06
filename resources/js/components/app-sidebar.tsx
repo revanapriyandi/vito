@@ -14,17 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem, SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import {
-  ChevronRightIcon,
-  CogIcon,
-  Globe,
-  ListEndIcon,
-  MousePointerClickIcon,
-  ServerIcon,
-  Settings2Icon,
-  WorkflowIcon,
-  ZapIcon,
-} from 'lucide-react';
+import { ChevronRightIcon, CogIcon, Globe, ListEndIcon, MousePointerClickIcon, ServerIcon, Settings2Icon, WorkflowIcon, ZapIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';

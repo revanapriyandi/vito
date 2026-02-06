@@ -39,11 +39,12 @@
                 $favicon = null;
             }
         @endphp
+
         <link rel="icon" href="{{ $favicon ?? asset('favicon/favicon-96x96.png') }}" sizes="any" />
         <link rel="apple-touch-icon" href="{{ $favicon ?? asset('favicon/apple-icon.png') }}" />
 
         <script>
-            window.appName = "{{ config('app.name') }}";
+            window.appName = '{{ config('app.name') }}';
         </script>
 
         <link rel="preconnect" href="https://fonts.bunny.net" />
