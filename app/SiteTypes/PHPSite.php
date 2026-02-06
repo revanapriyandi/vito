@@ -113,6 +113,9 @@ class PHPSite extends AbstractSiteType
         if ($this->site->type_data['composer']) {
             app(Composer::class)->installDependencies($this->site);
         }
+
+        // Auto-configure Framework (Laravel, CI4, etc)
+        $this->setupFramework();
     }
 
     public function baseCommands(): array

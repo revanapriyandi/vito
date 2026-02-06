@@ -8,6 +8,7 @@ use App\Enums\LoadBalancerMethod;
 use App\Plugins\RegisterSiteFeature;
 use App\Plugins\RegisterSiteFeatureAction;
 use App\Plugins\RegisterSiteType;
+use App\SiteTypes\CodeIgniter;
 use App\SiteTypes\Laravel;
 use App\SiteTypes\LoadBalancer;
 use App\SiteTypes\NodeJS;
@@ -19,7 +20,9 @@ use Illuminate\Support\ServiceProvider;
 
 class SiteTypeServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+    }
 
     public function boot(): void
     {
@@ -34,6 +37,7 @@ class SiteTypeServiceProvider extends ServiceProvider
         $this->loadBalancer();
         $this->phpMyAdmin();
         $this->wordpress();
+        $this->codeIgniter();
     }
 
     private function php(): void
@@ -373,6 +377,40 @@ class SiteTypeServiceProvider extends ServiceProvider
                 DynamicField::make('database_password')
                     ->text()
                     ->label('Database Password'),
+            ]))
+            ->register();
+    }
+
+    private function codeIgniter(): void
+    {
+        RegisterSiteType::make(CodeIgniter::id())
+            ->label('CodeIgniter 4')
+            ->handler(CodeIgniter::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('php_version')
+                    ->component()
+                    ->label('PHP Version'),
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('web_directory')
+                    ->text()
+                    ->label('Web Directory')
+                    ->default('public')
+                    ->placeholder('e.g., public, www, dist (leave empty for root)')
+                    ->description('The relative path of your website from /home/vito/your-domain/'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->label('Repository')
+                    ->placeholder('organization/repository'),
+                DynamicField::make('branch')
+                    ->text()
+                    ->label('Branch')
+                    ->default('main'),
+                DynamicField::make('composer')
+                    ->checkbox()
+                    ->label('Run `composer install --no-dev`')
+                    ->default(false),
             ]))
             ->register();
     }

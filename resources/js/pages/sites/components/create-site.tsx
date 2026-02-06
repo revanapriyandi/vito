@@ -160,7 +160,6 @@ export default function CreateSite({
       }
   };
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   const runZipAnalysis = async (file: File) => {
       setIsAnalyzing(true);
       /* @ts-expect-error dynamic types */

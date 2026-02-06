@@ -163,10 +163,10 @@ abstract class AbstractSiteType implements SiteType
         $flattenScript = <<<'BASH'
             cd %s
             # Count items including hidden ones, excluding . and ..
-            count=$(find . -maxdepth 1 -not -path '*/.*' | wc -l)
+            count=$(ls -A | wc -l)
             if [ "$count" -eq 1 ]; then
                 # Get the single item
-                item=$(find . -maxdepth 1 -not -path '*/.*' -printf "%%f")
+                item=$(ls -A)
                 if [ -d "$item" ]; then
                     echo "Flattening directory $item..."
                     # Move contents up
@@ -190,57 +190,93 @@ abstract class AbstractSiteType implements SiteType
             $this->site->id
         );
 
-        // Check for Laravel and run setup
-        if ($this->site->type === 'php') {
-            $checkLaravel = "test -f {$this->site->path}/artisan && echo 'yes'";
-            if (trim($this->site->server->ssh()->exec($checkLaravel, 'check-laravel', $this->site->id)) === 'yes') {
-
-                // 1. Permissions for storage and bootstrap/cache
-                $this->site->server->ssh()->exec(
-                    "sudo chmod -R 775 {$this->site->path}/storage {$this->site->path}/bootstrap/cache",
-                    'laravel-permissions-mode',
-                    $this->site->id
-                );
-
-                // 2. Composer Install
-                $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
-                if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec(
-                        'composer install --no-dev --no-interaction --no-progress --optimize-autoloader',
-                        'laravel-composer-install',
-                        $this->site->id
-                    );
-                }
-
-                // 3. Environment File
-                $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
-                if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
-                    $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
-                    if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
-                        $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'laravel-copy-env', $this->site->id);
-                    } else {
-                        $this->site->server->ssh($this->site->user)->exec("touch .env", 'laravel-create-env', $this->site->id);
-                    }
-
-                    // If user provided env vars via UI (saved to .env via other means prior? No, usually .env is written by install())
-                    // Currently install() does writeInitialEnv(). So .env MIGHT already exist if the user provided vars during create.
-                    // But if it was just created by 'cp' above, it needs keys.
-                    // We should run key:generate regardless if APP_KEY is missing.
-                    $this->site->server->ssh($this->site->user)->exec("php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
-                }
-
-                // 4. Migration
-                $this->site->server->ssh($this->site->user)->exec("php artisan migrate --force", 'laravel-migrate', $this->site->id);
-
-                // 5. Storage Link
-                $this->site->server->ssh($this->site->user)->exec("php artisan storage:link", 'laravel-storage-link', $this->site->id);
-
-                // 6. Optimize
-                $this->site->server->ssh($this->site->user)->exec("php artisan optimize:clear", 'laravel-optimize', $this->site->id);
-            }
-        }
+        // Check for Framework and run setup
+        $this->setupFramework();
 
         // Delete local file
         @unlink($zipPath);
+    }
+
+    protected function setupFramework(): void
+    {
+        if (!in_array($this->site->type, ['php', 'laravel', 'codeigniter'])) {
+            return;
+        }
+
+        // 1. Generic Composer Install (for Laravel, Symphony, CI4, Modern Native, etc)
+        // Only run if not already explicitly requested via site configuration (to avoid double install)
+        if (empty($this->site->type_data['composer'])) {
+            $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
+            if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
+                $this->site->server->ssh($this->site->user)->exec(
+                    'composer install --no-dev --no-interaction --no-progress --optimize-autoloader',
+                    'composer-install',
+                    $this->site->id
+                );
+            }
+        }
+
+        // 2. Laravel Specific Setup
+        $checkLaravel = "test -f {$this->site->path}/artisan && echo 'yes'";
+        if (trim($this->site->server->ssh()->exec($checkLaravel, 'check-laravel', $this->site->id)) === 'yes') {
+
+            // Permissions
+            $this->site->server->ssh()->exec(
+                "sudo chmod -R 775 {$this->site->path}/storage {$this->site->path}/bootstrap/cache",
+                'laravel-permissions-mode',
+                $this->site->id
+            );
+
+            // Environment File
+            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
+            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
+                $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
+                if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'laravel-copy-env', $this->site->id);
+                } else {
+                    $this->site->server->ssh($this->site->user)->exec("touch .env", 'laravel-create-env', $this->site->id);
+                }
+
+                $this->site->server->ssh($this->site->user)->exec("php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
+            }
+
+            // Commands
+            $this->site->server->ssh($this->site->user)->exec("php artisan migrate --force", 'laravel-migrate', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("php artisan storage:link", 'laravel-storage-link', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("php artisan optimize:clear", 'laravel-optimize', $this->site->id);
+        }
+
+        // 3. CodeIgniter 4 Specific Setup
+        $checkCI4 = "test -f {$this->site->path}/spark && echo 'yes'";
+        if (trim($this->site->server->ssh()->exec($checkCI4, 'check-ci4', $this->site->id)) === 'yes') {
+
+            // Permissions: CI4 requires 'writable' to be writable by web server
+            // Ensure writable exists first
+            if (trim($this->site->server->ssh()->exec("test -d {$this->site->path}/writable && echo 'yes'", 'check-ci4-writable', $this->site->id)) === 'yes') {
+                $this->site->server->ssh()->exec(
+                    "sudo chmod -R 775 {$this->site->path}/writable",
+                    'ci4-permissions-mode',
+                    $this->site->id
+                );
+            }
+
+            // Environment File
+            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
+            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
+                // CI4 uses 'env' file as example sometimes, or just .env.example? Usually 'env' in source root.
+                // Standard CI4 comes with 'env'.
+                if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cp env .env", 'ci4-copy-env', $this->site->id);
+                } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes'", 'check-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'ci4-copy-env', $this->site->id);
+                }
+
+                // CI4 >= 4.2 has key:generate
+                $this->site->server->ssh($this->site->user)->exec("php spark key:generate", 'ci4-key-generate', $this->site->id);
+            }
+
+            $this->site->server->ssh($this->site->user)->exec("php spark migrate --all", 'ci4-migrate', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("php spark optimize", 'ci4-optimize', $this->site->id);
+        }
     }
 }

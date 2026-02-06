@@ -1,13 +1,8 @@
 git pull origin $BRANCH
 
 composer install --no-interaction --prefer-dist --optimize-autoloader
-php artisan key:generate
-php artisan migrate --force
 
-php artisan optimize:clear
-php artisan optimize
-
-npm ci
-npm run build
+php spark migrate --all
+php spark optimize
 
 echo "✅ Deployment completed successfully!"

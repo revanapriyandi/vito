@@ -72,7 +72,7 @@ class RepositoryAnalyzer
 
     protected function enrichWithEnv(AnalysisResult $result, Closure $getter): void
     {
-        $envExample = $getter('.env.example') ?? $getter('.env.template'); // basic check
+        $envExample = $getter('.env.example') ?? $getter('.env.template') ?? $getter('.env'); // basic check
 
         if ($envExample) {
             $lines = explode("\n", $envExample);
