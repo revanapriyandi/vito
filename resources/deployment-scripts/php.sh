@@ -1,11 +1,16 @@
 # Ensure we are in the site directory
-cd $SITE_PATH || exit 1
+if [ -z "$SITE_PATH" ]; then
+    echo "ERROR: SITE_PATH variable is not set."
+    exit 1
+fi
+
+cd "$SITE_PATH" || { echo "ERROR: Could not change directory to $SITE_PATH"; exit 1; }
 echo "Current directory: $(pwd)"
 
 if [ -d ".git" ]; then
-  git pull origin $BRANCH
+  git pull origin "$BRANCH"
 else
-  git clone -b $BRANCH $REPOSITORY .
+  git clone -b "$BRANCH" "$REPOSITORY" .
 fi
 
 # Install dependencies if composer.json exists
