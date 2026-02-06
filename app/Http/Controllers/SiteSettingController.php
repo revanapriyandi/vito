@@ -130,9 +130,9 @@ class SiteSettingController extends Controller
     {
         $this->authorize('delete', [$site, $server]);
 
-        app(DeleteSite::class)->delete($site, $request->input());
+        \App\Jobs\Site\DeleteSiteJob::dispatch($site, $request->input());
 
         return redirect()->route('sites', ['server' => $server])
-            ->with('success', 'Site deleted successfully.');
+            ->with('success', 'Site deletion has been queued.');
     }
 }
