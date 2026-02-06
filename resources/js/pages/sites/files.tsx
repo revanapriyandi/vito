@@ -58,7 +58,7 @@ export default function SiteFiles() {
     const loadFiles = async (path: string) => {
         setIsLoadingFiles(true);
         try {
-            const res = await axios.get(route('sites.files.index', { server: server.id, site: site.id }), {
+            const res = await axios.get(route('sites.files.list', { server: server.id, site: site.id }), {
                 params: { path }
             });
             setFiles(res.data);

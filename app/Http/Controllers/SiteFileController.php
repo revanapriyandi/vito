@@ -19,7 +19,7 @@ class SiteFileController extends Controller
     /**
      * List files in a directory.
      */
-    #[Get('/', name: 'sites.files.index')]
+    #[Get('/', name: 'sites.files.list')]
     public function index(Request $request, Server $server, Site $site): JsonResponse
     {
         $this->authorize('view', [$site, $server]);
