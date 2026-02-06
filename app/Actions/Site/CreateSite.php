@@ -92,24 +92,45 @@ class CreateSite
 
                 if ($domain && $domain->dnsProvider) {
                     try {
+                        $provider = $domain->dnsProvider->provider();
+                        $records = $provider->getRecords($domain->provider_domain_id);
+
+                        $subdomain = $input['subdomain_prefix'] ?? '@';
+                        if (empty($subdomain)) {
+                            $subdomain = '@';
+                        }
+
+                        // Check availability
+                        $exists = collect($records)->contains(function ($record) use ($subdomain, $domain) {
+                            $recordName = $record['name'];
+                            // Cloudflare returns full name (e.g. sub.domain.com) or just name? 
+                            // Usually full name. Let's compare carefully.
+                            // If subdomain is @, it matches domain name.
+                            // If subdomain is 'sub', it matches sub.domain.com
+
+                            $targetName = $subdomain === '@' ? $domain->domain : $subdomain . '.' . $domain->domain;
+                            return $recordName === $targetName && $record['type'] === 'A';
+                        });
+
+                        if ($exists) {
+                            throw ValidationException::withMessages([
+                                'domain' => "DNS Record for {$subdomain} already exists in " . $domain->dnsProvider->name,
+                            ]);
+                        }
+
                         $dnsInput = [
                             'type' => 'A',
-                            'name' => $input['subdomain_prefix'] ?? '@',
+                            'name' => $subdomain,
                             'content' => $server->ip,
                             'ttl' => 1, // Auto
                             'proxied' => false,
                         ];
 
-                        // If subdomain is empty, use @ calling convention
-                        if (empty($dnsInput['name'])) {
-                            $dnsInput['name'] = '@';
-                        }
-
                         app(\App\Actions\Domain\CreateDNSRecord::class)->create($domain, $dnsInput);
+                    } catch (ValidationException $e) {
+                        throw $e;
                     } catch (\Throwable $e) {
-                        // Log error but don't fail site creation
-                        // Or maybe we want to inform user?
-                        // For now let's just proceed as site creation is primary
+                        // Log error but don't fail site creation logic unless it's validation
                     }
                 }
             }
