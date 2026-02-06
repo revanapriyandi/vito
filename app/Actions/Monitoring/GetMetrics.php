@@ -57,7 +57,7 @@ class GetMetrics
             ->whereBetween('created_at', [$fromDate->format('Y-m-d H:i:s'), $toDate->format('Y-m-d H:i:s')])
             ->select(
                 [
-                    DB::raw('created_at as date'),
+                    DB::raw('MIN(created_at) as date'),
                     DB::raw('ROUND(AVG(`load`), 2) as `load`'),
                     DB::raw('ROUND(AVG(`memory_total`), 2) as `memory_total`'),
                     DB::raw('ROUND(AVG(`memory_used`), 2) as `memory_used`'),
