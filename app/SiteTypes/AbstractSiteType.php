@@ -127,18 +127,36 @@ abstract class AbstractSiteType implements SiteType
         $remotePath = $this->site->path . '/source.zip';
 
         // Upload zip file
-        $this->site->server->ssh()->upload($zipPath, $remotePath, $this->site->user);
+        $this->site->server->ssh()->upload(
+            $zipPath,
+            $remotePath,
+            $this->site->user,
+            'upload-zip-source',
+            $this->site->id
+        );
 
         // Unzip and set permissions
         // -o: overwrite existing files without prompting
         // -d: extract to directory
-        $this->site->server->ssh()->exec("unzip -o $remotePath -d {$this->site->path}");
+        $this->site->server->ssh()->exec(
+            "unzip -o $remotePath -d {$this->site->path}",
+            'extract-zip-source',
+            $this->site->id
+        );
 
         // Remove zip file
-        $this->site->server->ssh()->exec("rm $remotePath");
+        $this->site->server->ssh()->exec(
+            "rm $remotePath",
+            'cleanup-zip-source',
+            $this->site->id
+        );
 
         // Fix permissions
-        $this->site->server->ssh()->exec("chown -R {$this->site->user}:{$this->site->user} {$this->site->path}");
+        $this->site->server->ssh()->exec(
+            "chown -R {$this->site->user}:{$this->site->user} {$this->site->path}",
+            'set-permissions',
+            $this->site->id
+        );
 
         // Delete local file
         @unlink($zipPath);
