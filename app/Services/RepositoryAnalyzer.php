@@ -23,9 +23,9 @@ class RepositoryAnalyzer
         LaravelDetector::class,
         WordpressDetector::class,
         PHPSiteDetector::class, // Generic PHP last among PHP-ish
-        NodeDetector::class,
         PythonDetector::class,
         GoDetector::class,
+        NodeDetector::class,      // Check Node.js last before fallback
         StaticHTMLDetector::class,
     ];
 
@@ -41,8 +41,8 @@ class RepositoryAnalyzer
     public function analyzeZip(string $extractedPath): AnalysisResult
     {
         $getter = function (string $path) use ($extractedPath): ?string {
-            $fullPath = $extractedPath.'/'.$path;
-            if (file_exists($fullPath) && ! is_dir($fullPath)) {
+            $fullPath = $extractedPath . '/' . $path;
+            if (file_exists($fullPath) && !is_dir($fullPath)) {
                 return file_get_contents($fullPath);
             }
 
@@ -79,7 +79,7 @@ class RepositoryAnalyzer
             $keys = [];
             foreach ($lines as $line) {
                 $line = trim($line);
-                if ($line && ! str_starts_with($line, '#') && str_contains($line, '=')) {
+                if ($line && !str_starts_with($line, '#') && str_contains($line, '=')) {
                     $key = explode('=', $line)[0];
                     if ($key) {
                         $keys[] = trim($key);
