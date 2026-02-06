@@ -1,6 +1,10 @@
 cd $SITE_PATH
 
-git pull origin $BRANCH
+if [ -d ".git" ]; then
+  git pull origin $BRANCH
+else
+  git clone -b $BRANCH $REPOSITORY .
+fi
 
 pip install -r requirements.txt
 

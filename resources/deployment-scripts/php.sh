@@ -1,4 +1,8 @@
-git pull origin $BRANCH
+if [ -d ".git" ]; then
+  git pull origin $BRANCH
+else
+  git clone -b $BRANCH $REPOSITORY .
+fi
 
 # Install dependencies if composer.json exists
 if [ -f "composer.json" ]; then
