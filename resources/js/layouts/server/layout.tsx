@@ -63,7 +63,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       href: route('databases', { server: page.props.server.id }),
       icon: DatabaseIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['database'],
+      hidden: !page.props.server.services?.['database'],
       children: [
         {
           title: 'Databases',
@@ -89,7 +89,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       href: route('sites', { server: page.props.server.id }),
       icon: MousePointerClickIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['webserver'],
+      hidden: !page.props.server.services?.['webserver'],
       children:
         site && site.id
           ? [
@@ -130,7 +130,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
                 href: route('workers.site', { server: page.props.server.id, site: site.id }),
                 icon: ListEndIcon,
                 isDisabled: isMenuDisabled,
-                hidden: !page.props.server.services['process_manager'],
+                hidden: !page.props.server.services?.['process_manager'],
               },
               {
                 title: 'CronJobs',
@@ -161,14 +161,14 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       href: route('php', { server: page.props.server.id }),
       icon: PHPIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['php'],
+      hidden: !page.props.server.services?.['php'],
     },
     {
       title: 'Firewall',
       href: route('firewall', { server: page.props.server.id }),
       icon: FlameIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['firewall'],
+      hidden: !page.props.server.services?.['firewall'],
     },
     {
       title: 'CronJobs',
@@ -181,7 +181,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       href: route('workers', { server: page.props.server.id }),
       icon: ListEndIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['process_manager'],
+      hidden: !page.props.server.services?.['process_manager'],
     },
     {
       title: 'SSH Keys',

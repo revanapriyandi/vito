@@ -21,7 +21,7 @@ type Page = {
 export default function Databases() {
   const page = usePage<Page>();
 
-  const dbType = page.props.server.services['database'];
+  const dbType = page.props.server.services?.['database'];
   const defaultCharset = dbType === 'postgresql' ? 'UTF8' : 'utf8mb4';
   const defaultCollation = dbType === 'postgresql' ? 'C.utf8' : 'utf8mb4_0900_ai_ci';
 

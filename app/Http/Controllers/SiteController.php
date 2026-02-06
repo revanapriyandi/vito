@@ -121,9 +121,6 @@ class SiteController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        return Inertia::render('sites/files', [
-            'site' => $site,
-            'server' => $server,
-        ]);
+        return Inertia::render('sites/files');
     }
 }
