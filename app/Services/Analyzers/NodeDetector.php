@@ -10,7 +10,7 @@ class NodeDetector implements ProjectDetector
     public function analyze(Closure $fileGetter): ?AnalysisResult
     {
         $packageJson = $fileGetter('package.json');
-        if (! $packageJson) {
+        if (!$packageJson) {
             return null;
         }
 
@@ -53,11 +53,13 @@ class NodeDetector implements ProjectDetector
         // Simple parser: remove non-numeric except dot, take major version mostly?
         // Node versions usually int: 18, 20.
         $version = preg_replace('/[^0-9.]/', '', $constraint);
-        $parts = explode('.', $version);
-        if (count($parts) >= 1) {
-            return $parts[0];
+
+        if (empty($version)) {
+            return null;
         }
 
-        return null;
+        $parts = explode('.', $version);
+
+        return $parts[0];
     }
 }
