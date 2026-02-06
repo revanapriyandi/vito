@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { ReactNode, useState, FormEventHandler, useEffect } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -99,17 +100,12 @@ export default function CreateSite({
   const runAnalysis = async (repo: string, branch: string) => {
       setIsAnalyzing(true);
       try {
-          const res = await fetch(route('api.analysis.git'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify({
-                  source_control_id: form.data.source_control,
-                  repository: repo,
-                  branch: branch
-              })
+          const res = await axios.post(route('api.analysis.git'), {
+              source_control_id: form.data.source_control,
+              repository: repo,
+              branch: branch
           });
-          const result = await res.json();
-          applyAnalysis(result);
+          applyAnalysis(res.data);
       } catch (e) {
           console.error(e);
       } finally {
@@ -122,15 +118,12 @@ export default function CreateSite({
       const formData = new FormData();
       formData.append('file', file);
       try {
-          const res = await fetch(route('api.analysis.zip'), {
-              method: 'POST',
-              headers: { 'Accept': 'application/json' },
-              body: formData
+          const res = await axios.post(route('api.analysis.zip'), formData, {
+              headers: {
+                  'Content-Type': 'multipart/form-data'
+              }
           });
-          const result = await res.json();
-          // Assuming result includes a temp token or path we should set to form?
-          // form.setData('zip_path', result.temp_path);
-          applyAnalysis(result);
+          applyAnalysis(res.data);
       } catch (e) {
           console.error(e);
       } finally {
@@ -364,7 +357,7 @@ export default function CreateSite({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="w-full lg:max-w-3xl">
+      <SheetContent className="w-full">
         <SheetHeader>
           <SheetTitle>Create site</SheetTitle>
           <SheetDescription>Fill in the details to create a new site.</SheetDescription>
