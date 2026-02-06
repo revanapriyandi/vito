@@ -34,7 +34,7 @@ class Github extends AbstractSourceControlProvider
     {
         return Http::withHeaders([
             'Accept' => 'application/vnd.github.v3+json',
-            'Authorization' => 'Bearer '.$this->data()['token'],
+            'Authorization' => 'Bearer ' . $this->data()['token'],
         ]);
     }
 
@@ -42,7 +42,7 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $res = $this->getClient()
-                ->get(self::API_BASE_URL.'/user');
+                ->get(self::API_BASE_URL . '/user');
 
             return $res->successful();
         } catch (Exception $e) {
@@ -60,8 +60,8 @@ class Github extends AbstractSourceControlProvider
     public function getRepo(string $repo): mixed
     {
         $url = $repo !== '' && $repo !== '0'
-            ? self::API_BASE_URL.'/repos/'.$repo
-            : self::API_BASE_URL.'/user/repos';
+            ? self::API_BASE_URL . '/repos/' . $repo
+            : self::API_BASE_URL . '/user/repos';
 
         $res = $this->getClient()->get($url);
 
@@ -82,11 +82,11 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $response = $this->getClient()
-                ->post(self::API_BASE_URL."/repos/$repo/hooks", [
+                ->post(self::API_BASE_URL . "/repos/$repo/hooks", [
                     'name' => 'web',
                     'events' => $events,
                     'config' => [
-                        'url' => url('/api/git-hooks?secret='.$secret),
+                        'url' => url('/api/git-hooks?secret=' . $secret),
                         'content_type' => 'json',
                     ],
                     'active' => true,
@@ -120,7 +120,7 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $response = $this->getClient()
-                ->delete(self::API_BASE_URL."/repos/$repo/hooks/$hookId");
+                ->delete(self::API_BASE_URL . "/repos/$repo/hooks/$hookId");
 
             if ($response->status() !== 204) {
                 throw new FailedToDestroyGitHook($response->body());
@@ -142,14 +142,14 @@ class Github extends AbstractSourceControlProvider
      */
     public function getLastCommit(string $repo, string $branch): ?array
     {
-        $cacheKey = 'github_commit_'.md5($repo.$branch.$this->data()['token']);
+        $cacheKey = 'github_commit_' . md5($repo . $branch . $this->data()['token']);
 
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
         try {
-            $url = self::API_BASE_URL.'/repos/'.$repo.'/commits/'.$branch;
+            $url = self::API_BASE_URL . '/repos/' . $repo . '/commits/' . $branch;
             $res = $this->getClient()->get($url);
             $this->handleResponseErrors($res, $repo);
 
@@ -180,7 +180,7 @@ class Github extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            throw new Exception('Failed to fetch last commit: '.$e->getMessage());
+            throw new Exception('Failed to fetch last commit: ' . $e->getMessage());
         }
     }
 
@@ -191,13 +191,18 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $response = $this->getClient()
-                ->post(self::API_BASE_URL.'/repos/'.$repo.'/keys', [
+                ->post(self::API_BASE_URL . '/repos/' . $repo . '/keys', [
                     'title' => $title,
                     'key' => $key,
                     'read_only' => false,
                 ]);
 
             if ($response->status() !== 201) {
+                if ($response->status() === 403 && str_contains($response->body(), 'Resource not accessible')) {
+                    throw new FailedToDeployGitKey(
+                        'Permission denied. Please ensure your GitHub Token has the "admin:public_key" or "write:public_key" scope (Classic) or "Read and write" access to "Deploy keys" (Fine-grained).'
+                    );
+                }
                 throw new FailedToDeployGitKey($response->body());
             }
 
@@ -218,9 +223,9 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $response = $this->getClient()
-                ->delete(self::API_BASE_URL."/repos/$repo/keys/$keyId");
+                ->delete(self::API_BASE_URL . "/repos/$repo/keys/$keyId");
 
-            if (! $response->successful()) {
+            if (!$response->successful()) {
                 Log::warning('Failed to delete GitHub deploy key', [
                     'repo' => $repo,
                     'key_id' => $keyId,
@@ -239,7 +244,7 @@ class Github extends AbstractSourceControlProvider
 
     public function getRepos(bool $useCache = true): array
     {
-        $cacheKey = 'github_repos_'.md5($this->data()['token']);
+        $cacheKey = 'github_repos_' . md5($this->data()['token']);
         if ($useCache && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
@@ -266,7 +271,7 @@ class Github extends AbstractSourceControlProvider
 
     public function getBranches(string $repo, bool $useCache = true): array
     {
-        $cacheKey = 'github_branches_'.md5($repo.$this->data()['token']);
+        $cacheKey = 'github_branches_' . md5($repo . $this->data()['token']);
         if ($useCache && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
@@ -304,11 +309,11 @@ class Github extends AbstractSourceControlProvider
         while ($hasMore) {
             $params['page'] = $page;
             $response = $this->getClient()->get(
-                self::API_BASE_URL.$endpoint,
+                self::API_BASE_URL . $endpoint,
                 $params
             );
 
-            if (! $response->successful()) {
+            if (!$response->successful()) {
                 throw new RequestException($response);
             }
 
@@ -343,7 +348,7 @@ class Github extends AbstractSourceControlProvider
     {
         try {
             $response = $this->getClient()->get(
-                self::API_BASE_URL."/repos/{$repo}/contents/{$path}",
+                self::API_BASE_URL . "/repos/{$repo}/contents/{$path}",
                 ['ref' => $branch]
             );
 
