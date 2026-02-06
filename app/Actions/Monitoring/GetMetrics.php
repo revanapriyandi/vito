@@ -22,11 +22,11 @@ class GetMetrics
         $this->validate($input);
 
         if (isset($input['from'])) {
-            $input['from'] = Carbon::parse($input['from'])->format('Y-m-d').' 00:00:00';
+            $input['from'] = Carbon::parse($input['from'])->format('Y-m-d') . ' 00:00:00';
         }
 
         if (isset($input['to'])) {
-            $input['to'] = Carbon::parse($input['to'])->format('Y-m-d').' 23:59:59';
+            $input['to'] = Carbon::parse($input['to'])->format('Y-m-d') . ' 23:59:59';
         }
 
         $defaultInput = [
@@ -87,7 +87,7 @@ class GetMetrics
             return new Carbon($input['from']);
         }
 
-        return Carbon::parse('-'.convert_time_format($input['period']));
+        return Carbon::parse('-' . convert_time_format($input['period']));
     }
 
     /**
@@ -113,21 +113,33 @@ class GetMetrics
             $periodInHours = $from->diffInHours($to);
         }
 
-        if (! isset($periodInHours)) {
+        if (!isset($periodInHours)) {
             $periodInHours = Carbon::parse(
                 convert_time_format($input['period'])
             )->diffInHours();
         }
 
+        $driver = DB::connection()->getDriverName();
+
         if (abs($periodInHours) <= 1) {
-            return DB::raw("strftime('%Y-%m-%d %H:%M:00', created_at) as date_interval");
+            if ($driver === 'sqlite') {
+                return DB::raw("strftime('%Y-%m-%d %H:%M:00', created_at) as date_interval");
+            }
+            // MySQL/MariaDB uses %i for minutes
+            return DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:00') as date_interval");
         }
 
         if ($periodInHours <= 24) {
-            return DB::raw("strftime('%Y-%m-%d %H:00:00', created_at) as date_interval");
+            if ($driver === 'sqlite') {
+                return DB::raw("strftime('%Y-%m-%d %H:00:00', created_at) as date_interval");
+            }
+            return DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00') as date_interval");
         }
 
-        return DB::raw("strftime('%Y-%m-%d 00:00:00', created_at) as date_interval");
+        if ($driver === 'sqlite') {
+            return DB::raw("strftime('%Y-%m-%d 00:00:00', created_at) as date_interval");
+        }
+        return DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d 00:00:00') as date_interval");
     }
 
     private function validate(array $input): void

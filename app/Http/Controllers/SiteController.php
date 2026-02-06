@@ -115,4 +115,14 @@ class SiteController extends Controller
             'logs' => ServerLogResource::collection($logs),
         ]);
     }
+    #[Get('/servers/{server}/sites/{site}/files', name: 'sites.files')]
+    public function files(Server $server, Site $site): Response
+    {
+        $this->authorize('view', [$site, $server]);
+
+        return Inertia::render('sites/files', [
+            'site' => $site,
+            'server' => $server,
+        ]);
+    }
 }

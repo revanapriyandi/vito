@@ -9,6 +9,7 @@ import {
   CommandIcon,
   DatabaseIcon,
   FlameIcon,
+  FolderIcon,
   HomeIcon,
   KeyIcon,
   ListEndIcon,
@@ -103,6 +104,11 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
                 href: route('application', { server: page.props.server.id, site: site.id }),
                 onlyActivePath: route('application', { server: page.props.server.id, site: site.id }),
                 icon: RocketIcon,
+              },
+              {
+                title: 'Files',
+                href: route('sites.files', { server: page.props.server.id, site: site.id }),
+                icon: FolderIcon,
               },
               {
                 title: 'Features',
