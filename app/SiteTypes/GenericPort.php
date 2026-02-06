@@ -83,10 +83,12 @@ class GenericPort extends AbstractSiteType
         $this->site->webserver()->createVHost($this->site);
         $this->progress(15);
 
-        $this->deployKey();
-        $this->progress(30);
-
-        app(Git::class)->clone($this->site);
+        // Only deploy key and clone if using git repository
+        if (!empty($this->site->repository)) {
+            $this->deployKey();
+            $this->progress(30);
+            app(Git::class)->clone($this->site);
+        }
 
         if (!empty($this->site->type_data['install_command'])) {
             $this->site->server->ssh($this->site->user)->exec(
