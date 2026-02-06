@@ -7,7 +7,7 @@ use App\Exceptions\SSHError;
 use App\Services\AbstractService;
 use Closure;
 
-class Redis extends AbstractService
+class RedisService extends AbstractService
 {
     public static function id(): string
     {

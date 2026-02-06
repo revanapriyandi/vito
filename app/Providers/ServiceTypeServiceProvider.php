@@ -12,14 +12,16 @@ use App\Services\Monitoring\VitoAgent\VitoAgent;
 use App\Services\NodeJS\NodeJS;
 use App\Services\PHP\PHP;
 use App\Services\ProcessManager\Supervisor;
-use App\Services\Redis\Redis as RedisService;
+use App\Services\Redis\RedisService;
 use App\Services\Webserver\Caddy;
 use App\Services\Webserver\Nginx;
 use Illuminate\Support\ServiceProvider;
 
 class ServiceTypeServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+    }
 
     public function boot(): void
     {

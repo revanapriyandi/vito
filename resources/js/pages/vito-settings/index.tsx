@@ -35,9 +35,11 @@ export default function Users() {
             </CardRow>
             <Separator />
             <CardRow>
-                <h3 className="text-lg font-medium text-foreground">General Settings</h3>
-                <p className="text-sm text-muted-foreground mb-4">Update your application name and branding.</p>
-                <GeneralSettingsForm />
+                <div>
+                  <h3 className="text-lg font-medium text-foreground">General Settings</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Update your application name and branding.</p>
+                  <GeneralSettingsForm />
+                </div>
             </CardRow>
           </CardContent>
         </Card>
