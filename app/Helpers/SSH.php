@@ -171,9 +171,11 @@ class SSH
         try {
             if ($this->asUser !== null && $this->asUser !== '' && $this->asUser !== '0') {
                 $command = <<<BASH
-                sudo -u {$this->asUser} bash <<'EOF'
+                sudo -u {$this->asUser} bash <<'VITO_EOF'
+                export HOME=$(getent passwd {$this->asUser} | cut -d: -f6)
+                cd \$HOME
                 {$command}
-                EOF
+                VITO_EOF
                 BASH;
             }
 
