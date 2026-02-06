@@ -1,4 +1,8 @@
 import axios from 'axios';
+
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
 import { ReactNode, useState, FormEventHandler, useEffect } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -357,7 +361,7 @@ export default function CreateSite({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="w-full">
+      <SheetContent className="w-full md:max-w-5xl lg:max-w-6xl">
         <SheetHeader>
           <SheetTitle>Create site</SheetTitle>
           <SheetDescription>Fill in the details to create a new site.</SheetDescription>
@@ -393,7 +397,7 @@ export default function CreateSite({
                                 <InputError message={form.errors.source_control} />
                             </FormField>
                             {form.data.source_control && (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField>
                                         <Label htmlFor="repository">Repository</Label>
                                         <SelectRepo
