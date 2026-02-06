@@ -12,6 +12,8 @@ if ! grep -q "Host {{ $host }}-{{ $key }}" ~/.ssh/config; then
 fi
 
 # Setup Known Hosts
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
 touch ~/.ssh/known_hosts
 chmod 644 ~/.ssh/known_hosts
 ssh-keyscan -H {{ $host }} >> ~/.ssh/known_hosts 2>/dev/null
