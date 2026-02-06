@@ -112,6 +112,8 @@ export interface Configs {
 
 export interface SharedData {
   name: string;
+  logo?: string | null;
+  favicon?: string | null;
   version: string;
   env: string;
   demo: boolean;

@@ -32,8 +32,15 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <link rel="icon" href="{{ asset('favicon/favicon-96x96.png') }}" sizes="any" />
-        <link rel="apple-touch-icon" href="{{ asset('favicon/apple-icon.png') }}" />
+        @php
+            try {
+                $favicon = \App\Models\Setting::get('favicon_path');
+            } catch (\Exception $e) {
+                $favicon = null;
+            }
+        @endphp
+        <link rel="icon" href="{{ $favicon ?? asset('favicon/favicon-96x96.png') }}" sizes="any" />
+        <link rel="apple-touch-icon" href="{{ $favicon ?? asset('favicon/apple-icon.png') }}" />
 
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

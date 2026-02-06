@@ -47,7 +47,7 @@ class VitoSettingController extends Controller
     #[Get('/export', name: 'vito-settings.export')]
     public function downloadExport(): BinaryFileResponse
     {
-        $exportName = 'vito-backup-'.date('Y-m-d').'.zip';
+        $exportName = 'vito-backup-' . date('Y-m-d') . '.zip';
         $export = $this->export($exportName);
 
         return response()->download($export, $exportName)->deleteFileAfterSend();
@@ -62,7 +62,7 @@ class VitoSettingController extends Controller
 
         $zip = new ZipArchive;
         if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
-            throw new Exception('Could not create zip file at '.$zipPath);
+            throw new Exception('Could not create zip file at ' . $zipPath);
         }
 
         foreach ($this->paths as $path => $type) {
@@ -98,7 +98,7 @@ class VitoSettingController extends Controller
         ]);
 
         $uploadedFile = $request->file('backup_file');
-        $extractName = 'vito-backup-import-'.time();
+        $extractName = 'vito-backup-import-' . time();
         $extractPath = Storage::disk('tmp')->path($extractName);
 
         // Create extraction directory
@@ -114,17 +114,17 @@ class VitoSettingController extends Controller
         $zip->close();
 
         // Replace files
-        File::move($extractPath.'/database.sqlite', storage_path('database.sqlite'));
-        if (File::exists($extractPath.'/.env')) {
-            File::move($extractPath.'/.env', base_path('.env'));
+        File::move($extractPath . '/database.sqlite', storage_path('database.sqlite'));
+        if (File::exists($extractPath . '/.env')) {
+            File::move($extractPath . '/.env', base_path('.env'));
         }
-        File::move($extractPath.'/ssh-public.key', storage_path('ssh-public.key'));
-        File::move($extractPath.'/ssh-private.pem', storage_path('ssh-private.pem'));
-        if (File::exists($extractPath.'/key-pairs')) {
-            move_directory($extractPath.'/key-pairs', storage_path('app/key-pairs'));
+        File::move($extractPath . '/ssh-public.key', storage_path('ssh-public.key'));
+        File::move($extractPath . '/ssh-private.pem', storage_path('ssh-private.pem'));
+        if (File::exists($extractPath . '/key-pairs')) {
+            move_directory($extractPath . '/key-pairs', storage_path('app/key-pairs'));
         }
-        if (File::exists($extractPath.'/server-logs')) {
-            move_directory($extractPath.'/server-logs', storage_path('app/server-logs'));
+        if (File::exists($extractPath . '/server-logs')) {
+            move_directory($extractPath . '/server-logs', storage_path('app/server-logs'));
         }
 
         Artisan::call('optimize');
@@ -138,8 +138,36 @@ class VitoSettingController extends Controller
         $files = File::allFiles($path);
 
         foreach ($files as $file) {
-            $relativePath = $zipPath.'/'.$file->getRelativePathname();
+            $relativePath = $zipPath . '/' . $file->getRelativePathname();
             $zip->addFile($file->getRealPath(), $relativePath);
         }
+    }
+
+    #[Post('/update', name: 'vito-settings.update')]
+    public function update(Request $request): RedirectResponse
+    {
+        if (config('app.demo')) {
+            return back()->with('error', 'Updating settings is disabled in demo mode.');
+        }
+
+        $request->validate([
+            'app_name' => 'required|string|max:255',
+            'logo' => 'nullable|image|max:1024',
+            'favicon' => 'nullable|image|max:1024',
+        ]);
+
+        \App\Models\Setting::set('app_name', $request->input('app_name'));
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('public/settings');
+            \App\Models\Setting::set('logo_path', Storage::url($path));
+        }
+
+        if ($request->hasFile('favicon')) {
+            $path = $request->file('favicon')->store('public/settings');
+            \App\Models\Setting::set('favicon_path', Storage::url($path));
+        }
+
+        return back()->with('success', 'Settings updated successfully.');
     }
 }
