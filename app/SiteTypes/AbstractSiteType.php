@@ -203,8 +203,48 @@ abstract class AbstractSiteType implements SiteType
             return;
         }
 
-        // 1. Generic Composer Install (for Laravel, Symphony, CI4, Modern Native, etc)
-        // Only run if not already explicitly requested via site configuration (to avoid double install)
+        $isLaravel = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/artisan && echo 'yes'", 'check-laravel', $this->site->id)) === 'yes';
+        $isCI4 = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/spark && echo 'yes'", 'check-ci4', $this->site->id)) === 'yes';
+
+        // 1. Pre-install setup (Permissions & Env)
+        if ($isLaravel) {
+            $this->site->server->ssh()->exec(
+                "sudo chmod -R 775 {$this->site->path}/storage {$this->site->path}/bootstrap/cache",
+                'laravel-permissions-mode',
+                $this->site->id
+            );
+
+            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
+            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
+                $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
+                if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'laravel-copy-env', $this->site->id);
+                } else {
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && touch .env", 'laravel-create-env', $this->site->id);
+                }
+            }
+        }
+
+        if ($isCI4) {
+            if (trim($this->site->server->ssh()->exec("test -d {$this->site->path}/writable && echo 'yes'", 'check-ci4-writable', $this->site->id)) === 'yes') {
+                $this->site->server->ssh()->exec(
+                    "sudo chmod -R 775 {$this->site->path}/writable",
+                    'ci4-permissions-mode',
+                    $this->site->id
+                );
+            }
+
+            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
+            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
+                if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp env .env", 'ci4-copy-env', $this->site->id);
+                } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes'", 'check-env-example', $this->site->id)) === 'yes') {
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'ci4-copy-env', $this->site->id);
+                }
+            }
+        }
+
+        // 2. Generic Composer Install (for Laravel, Symphony, CI4, Modern Native, etc)
         if (empty($this->site->type_data['composer'])) {
             $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
             if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
@@ -216,67 +256,19 @@ abstract class AbstractSiteType implements SiteType
             }
         }
 
-        // 2. Laravel Specific Setup
-        $checkLaravel = "test -f {$this->site->path}/artisan && echo 'yes'";
-        if (trim($this->site->server->ssh()->exec($checkLaravel, 'check-laravel', $this->site->id)) === 'yes') {
-
-            // Permissions
-            $this->site->server->ssh()->exec(
-                "sudo chmod -R 775 {$this->site->path}/storage {$this->site->path}/bootstrap/cache",
-                'laravel-permissions-mode',
-                $this->site->id
-            );
-
-            // Environment File
-            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
-            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
-                $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
-                if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'laravel-copy-env', $this->site->id);
-                } else {
-                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && touch .env", 'laravel-create-env', $this->site->id);
-                }
-
-                $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
-            }
-
-            // Commands
+        // 3. Post-install commands
+        if ($isLaravel) {
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan migrate --force", 'laravel-migrate', $this->site->id);
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan storage:link", 'laravel-storage-link', $this->site->id);
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan optimize:clear", 'laravel-optimize', $this->site->id);
         }
 
-        // 3. CodeIgniter 4 Specific Setup
-        $checkCI4 = "test -f {$this->site->path}/spark && echo 'yes'";
-        if (trim($this->site->server->ssh()->exec($checkCI4, 'check-ci4', $this->site->id)) === 'yes') {
-
-            // Permissions: CI4 requires 'writable' to be writable by web server
-            // Ensure writable exists first
-            if (trim($this->site->server->ssh()->exec("test -d {$this->site->path}/writable && echo 'yes'", 'check-ci4-writable', $this->site->id)) === 'yes') {
-                $this->site->server->ssh()->exec(
-                    "sudo chmod -R 775 {$this->site->path}/writable",
-                    'ci4-permissions-mode',
-                    $this->site->id
-                );
-            }
-
-            // Environment File
-            $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
-            if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
-                // CI4 uses 'env' file as example sometimes, or just .env.example? Usually 'env' in source root.
-                // Standard CI4 comes with 'env'.
-                if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp env .env", 'ci4-copy-env', $this->site->id);
-                } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes'", 'check-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'ci4-copy-env', $this->site->id);
-                }
-
-                // CI4 >= 4.2 has key:generate
-                $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark key:generate", 'ci4-key-generate', $this->site->id);
-            }
-
+        if ($isCI4) {
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark key:generate", 'ci4-key-generate', $this->site->id);
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark migrate --all", 'ci4-migrate', $this->site->id);
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark optimize", 'ci4-optimize', $this->site->id);
         }
+    }
     }
 }
