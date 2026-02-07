@@ -123,4 +123,14 @@ class SiteController extends Controller
 
         return Inertia::render('sites/files');
     }
+
+    #[Post('/servers/{server}/sites/{site}/rebuild', name: 'sites.rebuild')]
+    public function rebuild(Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        app(\App\Actions\Site\RebuildSite::class)->rebuild($site);
+
+        return back()->with('info', 'Rebuilding site, please wait...');
+    }
 }

@@ -1,5 +1,5 @@
 import { Server } from '@/types/server';
-import { CheckIcon, CloudIcon, LoaderCircleIcon, LogsIcon, MousePointerClickIcon, SlashIcon, TerminalSquareIcon } from 'lucide-react';
+import { CheckIcon, CloudIcon, LoaderCircleIcon, LogsIcon, MousePointerClickIcon, RefreshCcwIcon, SlashIcon, TerminalSquareIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import ServerActions from '@/pages/servers/components/actions';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 
 export default function ServerHeader({ server, site }: { server: Server; site?: Site }) {
   const statusForm = useForm();
+  const rebuildForm = useForm();
 
   const checkStatus = () => {
     if (['installing', 'installation_failed'].includes(server.status)) {
@@ -21,6 +22,11 @@ export default function ServerHeader({ server, site }: { server: Server; site?: 
     }
 
     statusForm.patch(route('servers.status', { server: server.id }));
+  };
+
+  const rebuildSite = () => {
+    if (!site) return;
+    rebuildForm.post(route('sites.rebuild', { server: server.id, site: site.id }));
   };
 
   const [ipCopied, setIpCopied] = useState(false);
@@ -121,9 +127,12 @@ export default function ServerHeader({ server, site }: { server: Server; site?: 
                     <LoaderCircleIcon className={cn('size-4', site.status === 'installing' ? 'text-brand animate-spin' : '')} />
                     <div>%{parseInt(site.progress.toString() || '0')}</div>
                     {site.status === 'installation_failed' && (
-                      <Badge className="ml-1" variant={site.status_color}>
-                        {site.status}
-                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        <Badge variant={site.status_color}>{site.status}</Badge>
+                        <Button variant="ghost" size="icon" className="h-4 w-4" onClick={rebuildSite} disabled={rebuildForm.processing}>
+                          <RefreshCcwIcon className={cn('h-3 w-3', rebuildForm.processing ? 'animate-spin' : '')} />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </TooltipTrigger>

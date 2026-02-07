@@ -1,11 +1,12 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Server } from '@/types/server';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import DateTime from '@/components/date-time';
 import { Site } from '@/types/site';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EyeIcon } from 'lucide-react';
+import { EyeIcon, RefreshCcwIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function getColumns(server?: Server): ColumnDef<Site>[] {
   let columns: ColumnDef<Site>[] = [
@@ -46,7 +47,22 @@ export default function getColumns(server?: Server): ColumnDef<Site>[] {
       enableColumnFilter: true,
       enableSorting: true,
       cell: ({ row }) => {
-        return <Badge variant={row.original.status_color}>{row.original.status}</Badge>;
+        const site = row.original;
+        const form = useForm();
+        const rebuild = () => {
+          form.post(route('sites.rebuild', { server: site.server_id, site: site.id }));
+        };
+
+        return (
+          <div className="flex items-center space-x-1">
+            <Badge variant={site.status_color}>{site.status}</Badge>
+            {site.status === 'installation_failed' && (
+              <Button variant="ghost" size="icon" className="h-4 w-4" onClick={rebuild} disabled={form.processing}>
+                <RefreshCcwIcon className={cn('h-3 w-3', form.processing ? 'animate-spin' : '')} />
+              </Button>
+            )}
+          </div>
+        );
       },
     },
     {
