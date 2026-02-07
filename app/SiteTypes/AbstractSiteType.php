@@ -203,8 +203,8 @@ abstract class AbstractSiteType implements SiteType
             return;
         }
 
-        $isLaravel = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/artisan && echo 'yes'", 'check-laravel', $this->site->id)) === 'yes';
-        $isCI4 = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/spark && echo 'yes'", 'check-ci4', $this->site->id)) === 'yes';
+        $isLaravel = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/artisan && echo 'yes' || echo 'no'", 'check-laravel', $this->site->id)) === 'yes';
+        $isCI4 = trim($this->site->server->ssh()->exec("test -f {$this->site->path}/spark && echo 'yes' || echo 'no'", 'check-ci4', $this->site->id)) === 'yes';
 
         // 1. Pre-install setup (Permissions & Env)
         if ($isLaravel) {
@@ -216,7 +216,7 @@ abstract class AbstractSiteType implements SiteType
 
             $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
             if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
-                $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
+                $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes' || echo 'no'";
                 if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
                     $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'laravel-copy-env', $this->site->id);
                 } else {
@@ -226,7 +226,7 @@ abstract class AbstractSiteType implements SiteType
         }
 
         if ($isCI4) {
-            if (trim($this->site->server->ssh()->exec("test -d {$this->site->path}/writable && echo 'yes'", 'check-ci4-writable', $this->site->id)) === 'yes') {
+            if (trim($this->site->server->ssh()->exec("test -d {$this->site->path}/writable && echo 'yes' || echo 'no'", 'check-ci4-writable', $this->site->id)) === 'yes') {
                 $this->site->server->ssh()->exec(
                     "sudo chmod -R 775 {$this->site->path}/writable",
                     'ci4-permissions-mode',
@@ -236,9 +236,9 @@ abstract class AbstractSiteType implements SiteType
 
             $checkEnv = "test -f {$this->site->path}/.env || echo 'missing'";
             if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
-                if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
+                if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes' || echo 'no'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
                     $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp env .env", 'ci4-copy-env', $this->site->id);
-                } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes'", 'check-env-example', $this->site->id)) === 'yes') {
+                } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes' || echo 'no'", 'check-env-example', $this->site->id)) === 'yes') {
                     $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'ci4-copy-env', $this->site->id);
                 }
             }
@@ -246,7 +246,7 @@ abstract class AbstractSiteType implements SiteType
 
         // 2. Generic Composer Install (for Laravel, Symphony, CI4, Modern Native, etc)
         if (empty($this->site->type_data['composer'])) {
-            $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
+            $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes' || echo 'no'";
             if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
                 $this->site->server->ssh($this->site->user)->exec(
                     "cd {$this->site->path} && composer install --no-dev --no-interaction --no-progress --optimize-autoloader",
