@@ -157,6 +157,10 @@ class SSH
      */
     public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null): string
     {
+        if ($command instanceof View) {
+            $command = $command->render();
+        }
+
         $this->ensureLog($log, $siteId);
 
         try {
