@@ -270,5 +270,4 @@ abstract class AbstractSiteType implements SiteType
             $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark optimize", 'ci4-optimize', $this->site->id);
         }
     }
-    }
 }
