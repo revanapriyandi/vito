@@ -209,7 +209,7 @@ abstract class AbstractSiteType implements SiteType
             $checkComposer = "test -f {$this->site->path}/composer.json && echo 'yes'";
             if (trim($this->site->server->ssh()->exec($checkComposer, 'check-composer', $this->site->id)) === 'yes') {
                 $this->site->server->ssh($this->site->user)->exec(
-                    'composer install --no-dev --no-interaction --no-progress --optimize-autoloader',
+                    "cd {$this->site->path} && composer install --no-dev --no-interaction --no-progress --optimize-autoloader",
                     'composer-install',
                     $this->site->id
                 );
@@ -232,18 +232,18 @@ abstract class AbstractSiteType implements SiteType
             if (trim($this->site->server->ssh()->exec($checkEnv, 'check-env', $this->site->id)) === 'missing') {
                 $checkEnvExample = "test -f {$this->site->path}/.env.example && echo 'yes'";
                 if (trim($this->site->server->ssh()->exec($checkEnvExample, 'check-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'laravel-copy-env', $this->site->id);
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'laravel-copy-env', $this->site->id);
                 } else {
-                    $this->site->server->ssh($this->site->user)->exec("touch .env", 'laravel-create-env', $this->site->id);
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && touch .env", 'laravel-create-env', $this->site->id);
                 }
 
-                $this->site->server->ssh($this->site->user)->exec("php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
+                $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan key:generate --force", 'laravel-key-generate', $this->site->id);
             }
 
             // Commands
-            $this->site->server->ssh($this->site->user)->exec("php artisan migrate --force", 'laravel-migrate', $this->site->id);
-            $this->site->server->ssh($this->site->user)->exec("php artisan storage:link", 'laravel-storage-link', $this->site->id);
-            $this->site->server->ssh($this->site->user)->exec("php artisan optimize:clear", 'laravel-optimize', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan migrate --force", 'laravel-migrate', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan storage:link", 'laravel-storage-link', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php artisan optimize:clear", 'laravel-optimize', $this->site->id);
         }
 
         // 3. CodeIgniter 4 Specific Setup
@@ -266,17 +266,17 @@ abstract class AbstractSiteType implements SiteType
                 // CI4 uses 'env' file as example sometimes, or just .env.example? Usually 'env' in source root.
                 // Standard CI4 comes with 'env'.
                 if (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/env && echo 'yes'", 'check-ci4-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cp env .env", 'ci4-copy-env', $this->site->id);
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp env .env", 'ci4-copy-env', $this->site->id);
                 } elseif (trim($this->site->server->ssh()->exec("test -f {$this->site->path}/.env.example && echo 'yes'", 'check-env-example', $this->site->id)) === 'yes') {
-                    $this->site->server->ssh($this->site->user)->exec("cp .env.example .env", 'ci4-copy-env', $this->site->id);
+                    $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && cp .env.example .env", 'ci4-copy-env', $this->site->id);
                 }
 
                 // CI4 >= 4.2 has key:generate
-                $this->site->server->ssh($this->site->user)->exec("php spark key:generate", 'ci4-key-generate', $this->site->id);
+                $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark key:generate", 'ci4-key-generate', $this->site->id);
             }
 
-            $this->site->server->ssh($this->site->user)->exec("php spark migrate --all", 'ci4-migrate', $this->site->id);
-            $this->site->server->ssh($this->site->user)->exec("php spark optimize", 'ci4-optimize', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark migrate --all", 'ci4-migrate', $this->site->id);
+            $this->site->server->ssh($this->site->user)->exec("cd {$this->site->path} && php spark optimize", 'ci4-optimize', $this->site->id);
         }
     }
 }
